@@ -1,0 +1,2758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Gym Routine V3</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0a0a0a;
+    color: #e8e8e8;
+    min-height: 100vh;
+    padding: 14px;
+    padding-bottom: 100px;
+  }
+  .container { max-width: 720px; margin: 0 auto; }
+  h1 {
+    font-size: 22px;
+    font-weight: 700;
+    background: linear-gradient(90deg, #ff6b35, #f7c948);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .subtitle { font-size: 12px; color: #888; margin-bottom: 14px; }
+
+  .week-indicator {
+    background: #161616;
+    border: 1px solid #222;
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    gap: 8px;
+  }
+  .week-label { color: #888; }
+  .week-value { color: #ff6b35; font-weight: 600; flex: 1; text-align: center; }
+
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 12px;
+    background: #161616;
+    padding: 4px;
+    border-radius: 10px;
+  }
+  .tab {
+    flex: 1;
+    padding: 9px;
+    background: transparent;
+    color: #888;
+    border: none;
+    border-radius: 7px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .tab.active { background: #ff6b35; color: #fff; }
+
+  .day-selector {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+  .day-btn {
+    background: #161616;
+    border: 1px solid #222;
+    color: #ccc;
+    padding: 12px 10px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: left;
+  }
+  .day-btn.active {
+    background: linear-gradient(135deg, #ff6b35, #f7641a);
+    border-color: #ff6b35;
+    color: #fff;
+  }
+  .day-btn .day-sub {
+    display: block;
+    font-size: 10px;
+    color: #888;
+    font-weight: 400;
+    margin-top: 2px;
+    line-height: 1.3;
+  }
+  .day-btn.active .day-sub { color: rgba(255,255,255,0.85); }
+  .day-completed {
+    color: #4caf50;
+    font-weight: 600;
+  }
+
+  .autosave-note {
+    font-size: 10px;
+    color: #4caf50;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+
+  .reorder-toggle {
+    background: #161616;
+    border: 1px solid #222;
+    color: #888;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 11px;
+    cursor: pointer;
+    margin-bottom: 10px;
+    width: 100%;
+    font-weight: 600;
+  }
+  .reorder-toggle.active {
+    background: #f7c948;
+    color: #000;
+    border-color: #f7c948;
+  }
+
+  .card {
+    background: #161616;
+    border: 1px solid #222;
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 10px;
+    position: relative;
+  }
+  .card.reorder-mode {
+    cursor: grab;
+    border-color: #f7c948;
+  }
+  .card.dragging { opacity: 0.4; }
+
+  .reorder-handle {
+    display: none;
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    color: #888;
+    font-size: 18px;
+  }
+  .card.reorder-mode .reorder-handle { display: block; }
+  .card.reorder-mode .target-sets { display: none; }
+
+  .move-buttons {
+    display: none;
+    gap: 4px;
+    margin-top: 8px;
+  }
+  .card.reorder-mode .move-buttons { display: flex; }
+  .card.reorder-mode .recommendation,
+  .card.reorder-mode .last-session,
+  .card.reorder-mode .todays-sets,
+  .card.reorder-mode .history-toggle,
+  .card.reorder-mode .history,
+  .card.reorder-mode .set-options { display: none; }
+
+  .move-btn {
+    flex: 1;
+    background: #0d0d0d;
+    border: 1px solid #2a2a2a;
+    color: #aaa;
+    padding: 6px;
+    border-radius: 6px;
+    font-size: 11px;
+    cursor: pointer;
+  }
+  .move-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  .exercise-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+    gap: 8px;
+  }
+  .exercise-name { font-size: 15px; font-weight: 600; line-height: 1.2; }
+  .exercise-meta { font-size: 10px; color: #777; margin-top: 3px; }
+  .target-sets {
+    background: #0d0d0d;
+    color: #f7c948;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .recommendation {
+    padding: 9px 11px;
+    border-radius: 8px;
+    font-size: 12px;
+    margin-bottom: 10px;
+    line-height: 1.4;
+  }
+  .rec-push { background: rgba(76, 175, 80, 0.12); border-left: 3px solid #4caf50; }
+  .rec-hold { background: rgba(247, 201, 72, 0.12); border-left: 3px solid #f7c948; }
+  .rec-deload { background: rgba(255, 107, 53, 0.12); border-left: 3px solid #ff6b35; }
+  .rec-start { background: rgba(100, 149, 237, 0.12); border-left: 3px solid #6495ed; }
+
+  .last-session {
+    font-size: 11px;
+    color: #888;
+    margin-bottom: 10px;
+    padding: 6px 8px;
+    background: #0d0d0d;
+    border-radius: 6px;
+  }
+  .last-session strong { color: #ddd; }
+
+  .todays-sets-header {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #666;
+    margin-bottom: 6px;
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .set-row {
+    display: grid;
+    grid-template-columns: 28px 1fr 1fr 24px;
+    gap: 6px;
+    align-items: center;
+    padding: 4px 0;
+    font-size: 12px;
+  }
+  .set-row.complete {
+    background: rgba(76, 175, 80, 0.08);
+    border-radius: 6px;
+    padding: 6px;
+  }
+  .set-row.warmup {
+    background: rgba(247, 201, 72, 0.12);
+    border-radius: 6px;
+    padding: 6px;
+  }
+  .set-row.dropset {
+    background: rgba(100, 149, 237, 0.12);
+    border-radius: 6px;
+    padding: 6px;
+  }
+  .set-num {
+    color: #888;
+    font-weight: 600;
+    font-size: 11px;
+    text-align: center;
+  }
+  .set-num.complete { color: #4caf50; }
+  .set-num.warmup { color: #f7c948; }
+  .set-num.dropset { color: #6495ed; }
+  .set-value {
+    color: #ddd;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .set-row.warmup .set-value { color: #f7c948; }
+  .set-row.dropset .set-value { color: #6495ed; }
+
+  .log-form {
+    display: grid;
+    grid-template-columns: 28px 1fr 1fr 60px;
+    gap: 6px;
+    align-items: center;
+    padding-top: 6px;
+    border-top: 1px solid #222;
+  }
+  .log-form input {
+    background: #0d0d0d;
+    border: 1px solid #2a2a2a;
+    color: #fff;
+    padding: 8px;
+    border-radius: 6px;
+    font-size: 13px;
+    width: 100%;
+    text-align: center;
+  }
+  .log-form input:focus { outline: none; border-color: #ff6b35; }
+  .btn {
+    background: #ff6b35;
+    color: #fff;
+    border: none;
+    padding: 8px 4px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .btn-small {
+    background: #0d0d0d;
+    border: 1px solid #2a2a2a;
+    color: #aaa;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 10px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .btn-small:hover { color: #fff; border-color: #ff6b35; }
+
+  .delete-btn {
+    background: transparent;
+    border: none;
+    color: #555;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0;
+  }
+
+  .set-options {
+    display: flex;
+    gap: 4px;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #222;
+  }
+  .set-options button {
+    flex: 1;
+    font-size: 10px;
+  }
+
+  .empty {
+    text-align: center;
+    padding: 30px 16px;
+    color: #666;
+    font-size: 12px;
+  }
+
+  .chart {
+    height: 70px;
+    margin: 8px 0 4px;
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+  }
+  .bar {
+    flex: 1;
+    background: linear-gradient(180deg, #ff6b35, #f7c948);
+    border-radius: 3px 3px 0 0;
+    min-height: 4px;
+  }
+
+  .section-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #666;
+    margin: 16px 0 8px;
+    font-weight: 600;
+  }
+
+  .progress-day-filter {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    margin-bottom: 12px;
+    padding-bottom: 4px;
+  }
+  .filter-chip {
+    background: #161616;
+    border: 1px solid #222;
+    color: #aaa;
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 11px;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .filter-chip.active { background: #ff6b35; border-color: #ff6b35; color: #fff; }
+
+  .delta-up { color: #4caf50; }
+  .delta-down { color: #ff6b35; }
+  .delta-flat { color: #777; }
+
+  .reset-btn {
+    background: transparent;
+    border: 1px solid #333;
+    color: #888;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 10px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .history-toggle {
+    background: transparent;
+    border: none;
+    color: #666;
+    font-size: 10px;
+    cursor: pointer;
+    margin-top: 8px;
+    text-decoration: underline;
+  }
+  .history {
+    max-height: 110px;
+    overflow-y: auto;
+    margin-top: 6px;
+    border-top: 1px solid #222;
+    padding-top: 6px;
+  }
+  .history-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    padding: 3px 0;
+    color: #888;
+  }
+
+  /* Rest Timer */
+  .rest-timer {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    background: #161616;
+    border: 1px solid #2a2a2a;
+    border-radius: 30px;
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    transition: all 0.2s;
+  }
+  .rest-timer.running {
+    background: linear-gradient(135deg, #ff6b35, #f7641a);
+    border-color: #ff6b35;
+    box-shadow: 0 4px 30px rgba(255, 107, 53, 0.4);
+  }
+  .rest-timer.warning {
+    background: linear-gradient(135deg, #f7c948, #f7a948);
+    border-color: #f7c948;
+    color: #000;
+  }
+  .rest-timer.done {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    border-color: #4caf50;
+    animation: pulse 1s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: translateX(-50%) scale(1); }
+    50% { transform: translateX(-50%) scale(1.05); }
+  }
+  .timer-display {
+    font-size: 18px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: #fff;
+    min-width: 56px;
+    text-align: center;
+  }
+  .rest-timer.warning .timer-display { color: #000; }
+  .timer-btn {
+    background: rgba(255,255,255,0.15);
+    border: none;
+    color: #fff;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .rest-timer.warning .timer-btn { color: #000; background: rgba(0,0,0,0.15); }
+  .timer-label {
+    font-size: 10px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .rest-timer.running .timer-label,
+  .rest-timer.done .timer-label { color: rgba(255,255,255,0.8); }
+  .rest-timer.warning .timer-label { color: rgba(0,0,0,0.7); }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>💪 My Gym Routine <span style="font-size: 13px; color: #ff6b35; font-weight: 600; -webkit-text-fill-color: #ff6b35; vertical-align: middle;">V3</span></h1>
+  <p class="subtitle">PPL / Arnold Split · 2-week cycle · Auto-saves</p>
+
+  <div class="week-indicator" id="weekIndicator"></div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="home">🏠 Home</button>
+    <button class="tab" data-tab="track">Weights</button>
+    <button class="tab" data-tab="running">Running</button>
+    <button class="tab" data-tab="progress">Progress</button>
+  </div>
+
+  <div id="content"><div class="empty">Loading...</div></div>
+</div>
+
+<!-- Floating Rest Timer -->
+<div class="rest-timer" id="restTimer">
+  <div>
+    <div class="timer-label">Rest</div>
+    <div class="timer-display" id="timerDisplay">2:30</div>
+  </div>
+  <button class="timer-btn" id="timerStartBtn" onclick="toggleTimer()">▶</button>
+  <button class="timer-btn" onclick="resetTimer()">↻</button>
+</div>
+
+<script>
+// ===== Your PPL split (defaults) =====
+const DEFAULT_SPLIT = {
+  'push-1': { name: 'Push 1 (W1)', exercises: [
+    { id: 'bp-bb', name: 'Bench Press (Barbell)', sets: 4, reps: '5–8', warmup: true, notes: 'WARMUP: Empty bar ×10, ~50% ×5, ~70% ×3, ~85% ×1, then working sets. If stalling at top, incorporate pin press for lockout strength. Hit 8 on all sets → +2.5kg. Loss of reps by set 4 → deload 10% and rebuild.' },
+    { id: 'ohp-db', name: 'Seated Overhead Press (DB)', sets: 2, reps: '8–10', warmup: true, notes: 'WARMUP: 1 light feeler set ×8 with lighter DBs. Vertical path, full ROM lockout. Asymmetry limiter—train weaker side first next session. Match DB load.' },
+    { id: 'cc-dual', name: 'Cable Crossover (dual unit)', sets: 3, reps: '12–15', notes: 'Elbows slightly bent, constant. Peak contraction 0.5s at midline. If form degrades before rep target, reduce load. 15 on all sets → +2.5kg.' },
+    { id: 'tp-cable', name: 'Triceps Pushdown (single cable, EZ bar)', sets: 3, reps: '10–12', superset: true, notes: '[SUPERSET] Pulley high. Full lockout. Upper arms vertical throughout. Track total reps—if declining by set 3, reduce load. Hit 12 cleanly on all sets → microload.' },
+    { id: 'ote-cable', name: 'Overhead Triceps Ext (single cable, EZ bar)', sets: 3, reps: '10–12', superset: true, notes: '[SUPERSET w/ Pushdown] Pulley low. Full overhead stretch, lockout extension. Elbow position fixed. Last set to failure. Progress when reps stop declining across sets.' },
+    { id: 'lr-db', name: 'Lateral Raise (Cable, single D-handle)', sets: 4, reps: '12–20', notes: 'Slight elbow bend, static. Shoulder height peak, partials at top for final 3–5 reps. Reduce by 2.5kg if momentum present. Hit 20 on all sets → increase load.' }
+  ]},
+  'pull-1': { name: 'Pull 1 (W1)', exercises: [
+    { id: 'pu-w', name: 'Pull Up (weighted if able)', sets: 4, reps: '6–10', warmup: true, notes: 'WARMUP: 5–8 bodyweight reps before adding load. Scapular depression at start. If weighted reps decline >2 from set 1 → strip load, finish bodyweight. Add 2.5kg belt load when hitting 10 on all sets.' },
+    { id: 'ilr-m', name: 'Iso-Lateral Row (Machine)', sets: 4, reps: '8–12', warmup: true, notes: 'WARMUP: 1 light feeler set ×8. Scapular retraction at peak. Full ROM, chest to pad. If losing reps mid-set, end—next session will be stronger. Hit 12 on all sets → +2.5kg.' },
+    { id: 'lp-cable', name: 'Lat Pulldown (Cable, wide-grip bar)', sets: 3, reps: '10–12', dropset: true, notes: '[DROP SET] Wide grip. Elbows tracked wide. Last set: drop 25–30% after failure, continue to second failure. Track rep numbers—if declining, consider shorter rest.' },
+    { id: 'rf-m', name: 'Reverse Fly (Machine)', sets: 4, reps: '15–20', notes: 'Rear delt isolation. Squeeze at peak 0.5s. If last 2–3 reps are bouncing, reduce load. Progress to 20 on all sets before increasing load.' },
+    { id: 'ic-db', name: 'Incline Curl (Dumbbell)', sets: 4, reps: '10–12', notes: 'Stretch-biased—full ROM lockout and deep elbow flexion. If one arm lags, train it first. Match DBs precisely. Hit 12 on all sets → next increment.' },
+    { id: 'pc-m', name: 'Preacher Curl (Machine)', sets: 3, reps: '10–12', notes: 'Contraction-biased. Arm on pad throughout. Last set to true failure. If reps declining across sets, reduce load next session; rebuild.' }
+  ]},
+  'legs-1': { name: 'Leg 1 (W1 - Quad Emphasis)', exercises: [
+    { id: 'sq-bb', name: 'Squat (Barbell)', sets: 4, reps: '5–8', warmup: true, notes: 'WARMUP: Empty bar ×8–10, ~40% ×5, ~60% ×3, ~80% ×1–2, then working sets. Depth-dependent ROM. If knees cave, reduce load. Hit 8 on all sets → +2.5kg. Stall >2 weeks → check ankle/hip mobility.' },
+    { id: 'lp-m', name: 'Leg Press', sets: 3, reps: '10–12', warmup: true, notes: 'WARMUP: 1 ramp set at ~60% of working weight ×5. Feet low/mid. Full ROM—knees to chest, drive through midfoot. If declining reps, reduce load. Hit 12 on all sets → +5kg.' },
+    { id: 'le-m', name: 'Leg Extension (Machine)', sets: 4, reps: '12–15', dropset: true, notes: '[DROP SET] Quad isolation. Full extension lockout, pause 0.5s. Last set: drop 25–30% after failure, continue. If shins lift off pad, reduce load.' },
+    { id: 'rdl-bb', name: 'Romanian Deadlift', sets: 3, reps: '8–12', warmup: true, notes: 'WARMUP: Light bar ×8, ~50% ×6, ~75% ×3, then working sets. Hip hinge pattern—slight knee bend, constant. Hamstring stretch at bottom. If form degrades, deload 10%. Hit 12 on all sets → +2.5kg.' },
+    { id: 'llc-m', name: 'Lying Leg Curl (Machine)', sets: 3, reps: '12–15', notes: 'Hamstring isolation. Full extension at top, peak squeeze 0.5s. Slow eccentric 2–3 sec. If reps declining, reduce load. Hit 15 on all sets → +2.5kg.' },
+    { id: 'scr-m', name: 'Standing Calf Raise (Machine)', sets: 4, reps: '12–15', notes: 'Gastrocnemius bias. Full range—stretch at bottom, full plantarflexion lockout. Pause 1s at top. If form degrades by set 4, that\'s the cap. Hit 15 on all sets → +5kg.' }
+  ]},
+  'sa-1': { name: 'Shoulders/Arms 1 (W1)', exercises: [
+    { id: 'ohp-bb', name: 'Seated Overhead Press (Barbell)', sets: 3, reps: '6–10', warmup: true, notes: 'WARMUP: Empty bar ×8, ~50% ×5, ~75% ×3, working sets. Vertical path, full lockout. If asymmetry present, train weaker side first. Hit 10 on all sets → +2.5kg.' },
+    { id: 'lr-cable', name: 'Lateral Raise (Cable, single D-handle)', sets: 4, reps: '12–20', notes: 'Side delt isolation. Strict form—elbows lead. Full abduction, pause 0.5s. Partials final 3–5 reps. If swinging, reduce load. Hit 20 on all sets → increase load.' },
+    { id: 'rpd-m', name: 'Reverse Pec Deck', sets: 3, reps: '15–20', notes: 'Rear delt contraction. Full range, squeeze at peak 1s. Slow eccentric. If reps declining, reduce load. Hit 20 on all sets → +2.5kg.' },
+    { id: 'tp-cable', name: 'Triceps Pushdown (single cable, EZ bar)', sets: 3, reps: '10–12', superset: true, notes: '[SUPERSET] Pulley high. Full lockout extension. Upper arms fixed. Track total reps—if declining by set 3, reduce load. Hit 12 cleanly → microload.' },
+    { id: 'bc-cable', name: 'Cable Curl (single cable, EZ bar)', sets: 3, reps: '10–12', superset: true, notes: '[SUPERSET w/ Pushdown] Same EZ bar. Full ROM lockout and deep flex. Peak contraction 0.5s. Hit 12 on all sets → +2.5kg.' },
+    { id: 'sc-bb', name: 'Skullcrusher (EZ Bar)', sets: 3, reps: '10–12', warmup: true, notes: 'WARMUP: 1 light feeler set ×8 with empty bar. Long-head triceps. Full range overhead, lockout extension. Elbows stable. Last set to failure. Progress when reps stop declining across sets.' },
+    { id: 'hc-db', name: 'Hammer Curl (Dumbbell)', sets: 3, reps: '10–12', notes: 'Brachialis + biceps. Neutral grip. Full ROM. If one arm lags, train it first. Match DBs precisely. Hit 12 on all sets → next increment.' }
+  ]},
+  'cb-1': { name: 'Chest/Back 1 (W1)', exercises: [
+    { id: 'ibp-db', name: 'Incline Bench Press (Dumbbell)', sets: 4, reps: '8–12', warmup: true, notes: 'WARMUP: 1 light set ×8 with lighter DBs. Upper chest bias. Full ROM deep stretch at bottom. Match DBs for stability. Hit 12 on all sets → next weight increment.' },
+    { id: 'lp-cable', name: 'Lat Pulldown (Cable, wide-grip bar)', sets: 3, reps: '10–12', notes: 'Back vertical pull. Wide grip, elbows out. Scapular retraction at peak, squeeze 0.5s. If form degrades, reduce load. Hit 12 on all sets → +5kg.' },
+    { id: 'cc-dual', name: 'Cable Crossover (dual unit)', sets: 3, reps: '12–15', notes: 'Pec contraction. Elbows bent constant, slight forward lean. Peak contraction 0.5s at midline. If form degrades, reduce load. 15 on all sets → +2.5kg.' },
+    { id: 'sr-cable', name: 'Seated Row (Cable, V-handle)', sets: 3, reps: '10–12', notes: 'Mid-back thickness. V-handle neutral grip. Full ROM, chest to pad, scapular retraction. Track reps—if declining, reduce load. Hit 12 on all sets → +5kg.' },
+    { id: 'cd-m', name: 'Chest Dip', sets: 3, reps: '8–12', warmup: true, superset: true, notes: 'WARMUP: 3–5 bodyweight reps before adding load. [SUPERSET] Lean forward, deep stretch at bottom. Antagonist to pull-up. Add load when hitting 12 cleanly.' },
+    { id: 'pu-w', name: 'Pull Up', sets: 3, reps: 'AMRAP', superset: true, notes: '[SUPERSET w/ Dip] Vertical pull, scapular depression. Grip width consistent. Max reps each set—don\'t hold back.' }
+  ]},
+  'push-2': { name: 'Push 2 (W2)', exercises: [
+    { id: 'ibp-db', name: 'Incline Bench Press (Dumbbell)', sets: 4, reps: '8–12', warmup: true, notes: 'WARMUP: 1 light set ×8 with lighter DBs. Upper-chest primary. Full ROM deep stretch. Match DBs. Hit 12 on all sets → next increment.' },
+    { id: 'ohp-bb', name: 'Overhead Press (Barbell)', sets: 2, reps: '6–10', warmup: true, notes: 'WARMUP: Empty bar ×8, ~50% ×5, ~75% ×3, working sets. Vertical path, full lockout. If stalling, reduce 5% and rebuild. Hit 10 on all sets → +2.5kg.' },
+    { id: 'sc-bb', name: 'Skullcrusher (EZ Bar)', sets: 3, reps: '8–10', warmup: true, notes: 'WARMUP: 1 light feeler set ×8 with lighter load. Long-head emphasis. Full overhead stretch, lockout extension. Elbows stable. Hit 10 on all sets → +2.5kg.' },
+    { id: 'tp-cable', name: 'Triceps Pushdown (single cable, EZ bar)', sets: 3, reps: '10–12', notes: 'Lateral/medial head. Pulley high. Full lockout, upper arms vertical. Track reps—if declining, reduce load. Hit 12 on all sets → microload.' },
+    { id: 'lr-db', name: 'Lateral Raise (Cable, single D-handle)', sets: 4, reps: '12–20', notes: 'Side delt volume. Elbow bend static. Shoulder height abduction, partials final 3–5 reps. If momentum present, reduce load. Hit 20 on all sets → increase load.' },
+    { id: 'cd-m', name: 'Chest Dip', sets: 3, reps: '8–12', warmup: true, notes: 'WARMUP: 3–5 bodyweight reps before adding load. Lean forward, deep stretch at bottom. Add load when hitting 12 cleanly on all sets.' }
+  ]},
+  'pull-2': { name: 'Pull 2 (W2)', exercises: [
+    { id: 'pu-w', name: 'Pull Up', sets: 5, reps: '6–10', warmup: true, notes: 'WARMUP: 5–8 bodyweight reps as first set if weighted. High-volume vertical pull. Scapular depression, full ROM. If reps decline >3 from set 1, strip load. Add 2.5kg when hitting 10 on all sets.' },
+    { id: 'swgr-cable', name: 'Seated Wide-Grip Row (Cable, wide bar)', sets: 3, reps: '10–12', notes: 'Lat width emphasis. Wide grip, scapular retraction at peak. Full ROM, squeeze 0.5s. Track reps—if declining, reduce load. Hit 12 on all sets → +5kg.' },
+    { id: 'lp-cable', name: 'Lat Pulldown (Cable, wide-grip bar)', sets: 3, reps: '10–12', dropset: true, notes: '[DROP SET] Wide grip, elbows out. Last set: drop 25–30% after failure, continue. If form degrades, end set.' },
+    { id: 'rpd-m', name: 'Reverse Pec Deck', sets: 4, reps: '15–20', notes: 'Rear delt contraction. Squeeze at peak 1s. Slow eccentric. If declining by set 4, reduce load. Hit 20 on all sets → +2.5kg.' },
+    { id: 'bayc-cable', name: 'Bayesian Cable Curl (single D-handle)', sets: 3, reps: '10–12', notes: 'Stretch-biased. Behind-body position, full ROM. Single D-handle. Peak contraction 0.5s. Hit 12 on all sets → +2.5kg.' },
+    { id: 'pc-m', name: 'Preacher Curl (Machine)', sets: 3, reps: '10–12', notes: 'Contraction-biased. Arm on pad throughout. Last set to true failure. If reps declining across sets, reduce load next session.' }
+  ]},
+  'legs-2': { name: 'Leg 2 (W2 - Posterior Chain)', exercises: [
+    { id: 'rdl-bb', name: 'Romanian Deadlift (Barbell)', sets: 4, reps: '8–12', warmup: true, notes: 'WARMUP: Light bar ×8, ~50% ×6, ~75% ×3, then working sets. Hip hinge anchor. Hamstring stretch at bottom. Full ROM. Hit 12 on all sets → +2.5kg.' },
+    { id: 'ht-bb', name: 'Hip Thrust (Barbell)', sets: 3, reps: '8–12', warmup: true, notes: 'WARMUP: 1 ramp set at ~60% ×5. Glute loading. Pause 1s at top lockout, squeeze. Full ROM. Hit 12 on all sets → +5kg.' },
+    { id: 'llc-m', name: 'Seated Leg Curl (Machine)', sets: 4, reps: '10–15', dropset: true, notes: '[DROP SET] Hamstring isolation. Full extension lockout, peak squeeze 0.5s. Last set: drop 25–30% after failure, continue.' },
+    { id: 'bss', name: 'Bulgarian Split Squat', sets: 3, reps: '10–12', warmup: true, notes: 'WARMUP: 1 bodyweight set ×8 per leg before adding load. Per leg unilateral. Full ROM, back foot elevated. If decline in reps, reduce load. Hit 12 on all sets → +2.5kg.' },
+    { id: 'lp-high', name: 'Leg Press (feet high)', sets: 2, reps: '12–15', notes: 'High foot placement—ham/glute bias. Full ROM. If form degrades, reduce load. Hit 15 on all sets → +5kg.' },
+    { id: 'scr-m', name: 'Standing Calf Raise (Machine)', sets: 4, reps: '12–15', notes: 'Gastrocnemius bias. Full range—stretch at bottom, full plantarflexion lockout. Pause 1s. Hit 15 on all sets → +5kg.' }
+  ]},
+  'sa-2': { name: 'Shoulders/Arms 2 (W2)', exercises: [
+    { id: 'ohp-db', name: 'Seated Overhead Press (Dumbbell)', sets: 3, reps: '8–10', warmup: true, notes: 'WARMUP: 1 light feeler set ×8 with lighter DBs. Vertical path, full lockout. Match DBs for stability. Hit 10 on all sets → +2.5kg.' },
+    { id: 'crdf-cable', name: 'Cable Rear Delt Fly (single cable, rope)', sets: 4, reps: '15–20', notes: 'Rear delt contraction. Rope hand separation. Full arc, squeeze at peak 1s. Slow eccentric. Hit 20 on all sets → +2.5kg.' },
+    { id: 'lr-db', name: 'Lateral Raise (Cable, single D-handle)', sets: 3, reps: '12–20', notes: 'Side delt isolation. Strict form—elbows lead. Shoulder height abduction, partials final reps. Hit 20 on all sets → increase load.' },
+    { id: 'tp-cable', name: 'Triceps Pushdown (single cable, EZ bar)', sets: 4, reps: '10–12', superset: true, notes: '[SUPERSET] Pulley high. Full lockout. Upper arms fixed. Track reps—if declining by set 4, reduce load. Hit 12 on all sets → microload.' },
+    { id: 'bc-cable', name: 'Cable Curl (single cable, EZ bar)', sets: 4, reps: '10–12', superset: true, notes: '[SUPERSET w/ Pushdown] Same EZ bar. Full ROM lockout and deep flex. Peak contraction 0.5s. Last set to failure.' },
+    { id: 'ote-cable', name: 'Overhead Triceps Ext (single cable, EZ bar)', sets: 3, reps: '12–15', dropset: true, notes: '[DROP SET] Pulley low. Full overhead stretch, lockout extension. Long head emphasis. Last set: drop 25–30% after failure, continue.' }
+  ]},
+  'cb-2': { name: 'Chest/Back 2 (W2)', exercises: [
+    { id: 'bp-bb', name: 'Bench Press (Barbell)', sets: 4, reps: '5–8', warmup: true, notes: 'WARMUP: Empty bar ×10, ~50% ×5, ~70% ×3, ~85% ×1, then working sets. Heavy flat press, primary chest. Full ROM deep stretch. Hit 8 on all sets → +2.5kg.' },
+    { id: 'ilr-m', name: 'Iso-Lateral Row (Machine)', sets: 3, reps: '8–12', warmup: true, notes: 'WARMUP: 1 light feeler set ×8. Back horizontal pull. Scapular retraction, full ROM. Hit 12 on all sets → +5kg.' },
+    { id: 'ilcp-m', name: 'Iso-Lateral Chest Press (Machine)', sets: 3, reps: '10–12', notes: 'Unilateral chest isolation. Full ROM, neutral grip path. Match sides. Hit 12 on all sets → +5kg.' },
+    { id: 'sr-cable', name: 'Seated Row (Cable, V-handle)', sets: 3, reps: '10–12', notes: 'Mid-back thickness. V-handle neutral grip. Full ROM, chest to pad. Scapular retraction. Hit 12 on all sets → +5kg.' },
+    { id: 'pd-m', name: 'Pec Deck (Machine)', sets: 3, reps: '12–15', dropset: true, notes: '[DROP SET] Pec contraction isolation. Peak contraction squeeze 0.5s. Last set: drop 25–30% after failure, continue.' },
+    { id: 'pu-w', name: 'Pull Up', sets: 3, reps: 'AMRAP', notes: 'Back vertical pull. Max reps each set. Scapular depression, full ROM. Don\'t hold back.' }
+  ]}
+};
+
+const WEEK_A = ['push-1', 'pull-1', 'legs-1', 'sa-1', 'cb-1'];
+const WEEK_B = ['push-2', 'pull-2', 'legs-2', 'sa-2', 'cb-2'];
+
+let SPLIT = JSON.parse(JSON.stringify(DEFAULT_SPLIT));
+let logs = {}; // exId -> [{date, weight, reps, notes, readiness}, ...]
+let lastCompleted = {}; // dayKey -> ISO date string of when completed
+let runningLogs = []; // [{date, type, distance, time, notes, intervals, readiness}, ...]
+let currentIntervals = []; // [{speed, time}, ...]
+let currentRunType = 'regular'; // Track selected run type
+let treadmillMode = 'speed'; // 'speed' or 'distance' for treadmill input
+let activeTab = 'home'; // default to home page
+let progressTab = 'lifts'; // 'lifts' or 'runs'
+let selectedDay = null;
+let currentWeek = 'A';
+let progressFilter = 'all';
+let showHistory = {};
+let reorderMode = false;
+
+// New feature states
+let benchmarkCelebration = null; // {benchmark, show: true} for celebration pop-up
+let showWeeklySummary = false;
+
+// ===== Rest timer =====
+const REST_DURATION = 150;
+let timerSeconds = REST_DURATION;
+let timerRunning = false;
+let timerInterval = null;
+let timerEndedNotified = false;
+let timerEndTime = null; // absolute timestamp (ms) when the timer should hit 0
+
+async function load() {
+  try {
+    const r = await window.storage.get('lift-logs');
+    if (r && r.value) logs = JSON.parse(r.value);
+  } catch (e) { logs = {}; }
+  try {
+    const run = await window.storage.get('running-logs');
+    if (run && run.value) runningLogs = JSON.parse(run.value);
+  } catch (e) { runningLogs = []; }
+  
+  // Fallback: check localStorage (for downloaded file usage)
+  if (Object.keys(logs).length === 0) {
+    try {
+      const localLogs = localStorage.getItem('gym-tracker-lift-logs');
+      if (localLogs) logs = JSON.parse(localLogs);
+    } catch (e) {}
+  }
+  if (runningLogs.length === 0) {
+    try {
+      const localRuns = localStorage.getItem('gym-tracker-running-logs');
+      if (localRuns) runningLogs = JSON.parse(localRuns);
+    } catch (e) {}
+  }
+  
+  try {
+    const w = await window.storage.get('current-week');
+    if (w && w.value) currentWeek = w.value;
+  } catch (e) {}
+  if (currentWeek === 'A') {
+    try {
+      const localW = localStorage.getItem('gym-tracker-current-week');
+      if (localW) currentWeek = localW;
+    } catch (e) {}
+  }
+  try {
+    const lc = await window.storage.get('last-completed');
+    if (lc && lc.value) lastCompleted = JSON.parse(lc.value);
+  } catch (e) { lastCompleted = {}; }
+  // Fallback: localStorage
+  if (Object.keys(lastCompleted).length === 0) {
+    try {
+      const localLC = localStorage.getItem('gym-tracker-last-completed');
+      if (localLC) lastCompleted = JSON.parse(localLC);
+    } catch (e) {}
+  }
+  const applyOrder = (customOrder) => {
+    for (const dayKey of Object.keys(SPLIT)) {
+      if (customOrder[dayKey]) {
+        const ordered = [];
+        for (const exId of customOrder[dayKey]) {
+          const ex = SPLIT[dayKey].exercises.find(e => e.id === exId);
+          if (ex) ordered.push(ex);
+        }
+        for (const ex of SPLIT[dayKey].exercises) {
+          if (!ordered.find(e => e.id === ex.id)) ordered.push(ex);
+        }
+        SPLIT[dayKey].exercises = ordered;
+      }
+    }
+  };
+  try {
+    const o = await window.storage.get('split-order');
+    if (o && o.value) applyOrder(JSON.parse(o.value));
+    else {
+      const localO = localStorage.getItem('gym-tracker-split-order');
+      if (localO) applyOrder(JSON.parse(localO));
+    }
+  } catch (e) {
+    try {
+      const localO = localStorage.getItem('gym-tracker-split-order');
+      if (localO) applyOrder(JSON.parse(localO));
+    } catch (e2) {}
+  }
+  render();
+  updateTimerUI();
+}
+
+// ===== STORAGE MANAGEMENT =====
+const MAX_RUNS = 10000; // keep last 10,000 runs (~1MB, covers 5+ years of 3 runs/week)
+const MAX_LIFT_LOGS_PER_EXERCISE = 1000; // keep last 1000 sets per exercise (~35KB per exercise, covers 5+ years of training)
+
+function enforceStorageLimit() {
+  // Remove oldest running logs if over limit
+  if (runningLogs.length > MAX_RUNS) {
+    runningLogs.sort((a, b) => new Date(a.date) - new Date(b.date));
+    runningLogs = runningLogs.slice(-MAX_RUNS); // keep last MAX_RUNS
+  }
+  
+  // Remove oldest lift logs per exercise if over limit
+  for (const exId in logs) {
+    if (logs[exId].length > MAX_LIFT_LOGS_PER_EXERCISE) {
+      logs[exId].sort((a, b) => new Date(a.date) - new Date(b.date));
+      logs[exId] = logs[exId].slice(-MAX_LIFT_LOGS_PER_EXERCISE); // keep last MAX
+    }
+  }
+}
+
+async function save() {
+  enforceStorageLimit();
+  try { await window.storage.set('lift-logs', JSON.stringify(logs)); } catch(e) {}
+  try { await window.storage.set('running-logs', JSON.stringify(runningLogs)); } catch(e) {}
+  // Fallback: also save to localStorage for offline/downloaded file usage
+  try { localStorage.setItem('gym-tracker-running-logs', JSON.stringify(runningLogs)); } catch(e) {}
+  try { localStorage.setItem('gym-tracker-lift-logs', JSON.stringify(logs)); } catch(e) {}
+}
+async function saveWeek() {
+  try { await window.storage.set('current-week', currentWeek); } catch(e) {}
+  try { localStorage.setItem('gym-tracker-current-week', currentWeek); } catch(e) {}
+}
+async function saveLastCompleted() {
+  try { await window.storage.set('last-completed', JSON.stringify(lastCompleted)); } catch(e) {}
+  try { localStorage.setItem('gym-tracker-last-completed', JSON.stringify(lastCompleted)); } catch(e) {}
+}
+async function saveOrder() {
+  const order = {};
+  for (const dayKey of Object.keys(SPLIT)) {
+    order[dayKey] = SPLIT[dayKey].exercises.map(e => e.id);
+  }
+  try { await window.storage.set('split-order', JSON.stringify(order)); } catch(e) {}
+  try { localStorage.setItem('gym-tracker-split-order', JSON.stringify(order)); } catch(e) {}
+}
+
+function getLastCompletedForDay(dayKey) {
+  if (!lastCompleted[dayKey]) return null;
+  const d = new Date(lastCompleted[dayKey]);
+  const now = new Date();
+  const daysDiff = Math.floor((now - d) / 86400000);
+  if (daysDiff === 0) return 'today';
+  if (daysDiff === 1) return 'yesterday';
+  return `${daysDiff}d ago`;
+}
+
+async function markDayComplete(dayKey) {
+  lastCompleted[dayKey] = new Date().toISOString();
+  await saveLastCompleted();
+}
+
+function getWarmupRamp(workingWeight) {
+  // Calculate warmup sets based on working weight (assumes 20kg barbell)
+  const BAR = 20;
+  if (!workingWeight || workingWeight <= BAR) return null;
+  
+  const ramp = [];
+  // Empty bar
+  ramp.push({ weight: BAR, reps: 10, label: 'Bar' });
+  // ~50%
+  const w50 = roundToPlate(workingWeight * 0.5);
+  if (w50 > BAR) ramp.push({ weight: w50, reps: 5, label: '50%' });
+  // ~70%
+  const w70 = roundToPlate(workingWeight * 0.7);
+  if (w70 > w50) ramp.push({ weight: w70, reps: 3, label: '70%' });
+  // ~85%
+  const w85 = roundToPlate(workingWeight * 0.85);
+  if (w85 > w70) ramp.push({ weight: w85, reps: 1, label: '85%' });
+  
+  return ramp;
+}
+
+function roundToPlate(weight) {
+  // Round to nearest 2.5kg (smallest practical plate increment per side = 1.25kg = 2.5kg total)
+  return Math.round(weight / 2.5) * 2.5;
+}
+
+async function undoMarkDayComplete(dayKey) {
+  delete lastCompleted[dayKey];
+  await saveLastCompleted();
+}
+
+function groupByDate(exLogs) {
+  const map = {};
+  for (const log of exLogs) {
+    const day = log.date.slice(0, 10);
+    if (!map[day]) map[day] = { date: log.date, sets: [] };
+    map[day].sets.push({ weight: log.weight, reps: log.reps, fullDate: log.date });
+  }
+  Object.values(map).forEach(d => d.sets.sort((a,b) => new Date(a.fullDate) - new Date(b.fullDate)));
+  return Object.values(map).sort((a,b) => new Date(b.date) - new Date(a.date));
+}
+
+function avgE1RM(sets) {
+  const e1rms = sets.map(s => s.weight * (1 + s.reps / 30));
+  return e1rms.reduce((a,b) => a+b, 0) / e1rms.length;
+}
+
+function formatSets(sets) {
+  if (sets.every(s => s.weight === sets[0].weight && s.reps === sets[0].reps)) {
+    return `${sets.length}×${sets[0].reps} @ ${sets[0].weight}kg`;
+  }
+  return sets.map(s => `${s.weight}×${s.reps}`).join(', ');
+}
+
+function localDateStr(date) {
+  // Returns YYYY-MM-DD in the user's LOCAL timezone — not UTC
+  const d = new Date(date);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function daysAgo(date) {
+  const today = localDateStr(new Date());
+  const then = localDateStr(date);
+  const diffMs = new Date(today) - new Date(then);
+  const d = Math.round(diffMs / 86400000);
+  if (d === 0) return 'today';
+  if (d === 1) return 'yesterday';
+  return `${d}d ago`;
+}
+
+function getTodaysSets(exId) {
+  const today = localDateStr(new Date());
+  return (logs[exId] || [])
+    .filter(l => localDateStr(l.date) === today)
+    .sort((a,b) => new Date(a.date) - new Date(b.date));
+}
+
+function parseRepRange(repsStr) {
+  // Parse "5–8", "12-20", "10–12", "AMRAP" etc. Returns {low, high} or null
+  if (!repsStr) return { low: 8, high: 12 }; // sensible default
+  const nums = repsStr.match(/\d+/g);
+  if (!nums || nums.length === 0) return { low: 8, high: 12 };
+  if (nums.length === 1) return { low: parseInt(nums[0]), high: parseInt(nums[0]) };
+  return { low: parseInt(nums[0]), high: parseInt(nums[1]) };
+}
+
+function getRec(exId, targetSets, repsStr) {
+  const today = new Date().toISOString().slice(0, 10);
+  const { low, high } = parseRepRange(repsStr);
+  const rangeText = low === high ? `${low}` : `${low}-${high}`;
+  // Smallest sensible load jump: heavier compound ranges (low reps) jump 2.5kg; high-rep isolation jumps smaller
+  const jump = low <= 6 ? 2.5 : low <= 10 ? 2.5 : 2;
+  
+  const exLogs = (logs[exId] || [])
+    .filter(l => localDateStr(l.date) !== today)
+    .slice()
+    .sort((a,b) => new Date(b.date) - new Date(a.date));
+
+  if (exLogs.length === 0) {
+    return { type: 'start', text: `🎯 First session. Pick a weight you can hit ${targetSets} sets of ${rangeText} reps with solid form. Stay in this rep range — it's what this exercise is programmed for. Log it and I'll track your progression from here.` };
+  }
+  
+  const sessions = groupByDate(exLogs);
+  const latest = sessions[0];
+  const latestSets = latest.sets;
+  const latestTop = Math.max(...latestSets.map(s => s.weight));
+  const latestAvgReps = latestSets.reduce((a,s) => a+s.reps, 0) / latestSets.length;
+  const latestE1RM = avgE1RM(latestSets);
+
+  if (sessions.length === 1) {
+    const rec = `Last session: ${formatSets(latestSets)}`;
+    
+    if (latestAvgReps >= high) {
+      return { type: 'push', text: `${rec}. You hit the top of your ${rangeText} range — time to add load. Try ${(latestTop + jump).toFixed(1)}kg and aim for ${low}+ reps. Control the eccentric (2-3s down) for more growth stimulus.` };
+    } else if (latestAvgReps >= low) {
+      return { type: 'hold', text: `${rec}. Right in your ${rangeText} target zone. Add 1-2 reps at ${latestTop}kg next time, and once you hit ${high} across all sets, bump to ${(latestTop + jump).toFixed(1)}kg.` };
+    } else {
+      return { type: 'hold', text: `${rec}. You're below your ${rangeText} target — the weight may be a touch heavy. Stick at ${latestTop}kg and build reps until you're hitting ${low}+ on every set before adding load.` };
+    }
+  }
+
+  const prev = sessions[1];
+  const prevSets = prev.sets;
+  const prevAvgReps = prevSets.reduce((a,s) => a+s.reps, 0) / prevSets.length;
+  const prevE1RM = avgE1RM(prevSets);
+  
+  const e1rmGain = ((latestE1RM - prevE1RM) / prevE1RM) * 100;
+  const repGain = latestAvgReps - prevAvgReps;
+
+  // Check for stagnation (3+ sessions with no meaningful progress)
+  if (sessions.length >= 3) {
+    const e3 = avgE1RM(sessions[2].sets);
+    const vals = [latestE1RM, prevE1RM, e3];
+    const range = Math.max(...vals) - Math.min(...vals);
+    if (range / latestE1RM < 0.02) {
+      return { type: 'deload', text: `⚠️ Same weight/reps for 3 sessions — that's a stall. Deload: drop to ${(latestTop * 0.88).toFixed(1)}kg, hit ${rangeText} reps at RPE 7 (3 reps in reserve), then rebuild. Come back in 3-5 days stronger.` };
+    }
+  }
+
+  // Coaching logic based on progression, anchored to this exercise's rep range
+  if (e1rmGain > 3) {
+    if (latestAvgReps >= high) {
+      return { type: 'push', text: `📈 Strong session: +${e1rmGain.toFixed(1)}% estimated 1RM and you topped your ${rangeText} range. Add load: ${(latestTop + jump).toFixed(1)}kg, reset to ${low}+ reps. Keep this momentum.` };
+    } else {
+      return { type: 'push', text: `📈 +${e1rmGain.toFixed(1)}% stronger. You're climbing fast — push reps toward ${high} at ${latestTop}kg, then add load. Staying in the ${rangeText} zone is what drives this lift.` };
+    }
+  } 
+  else if (e1rmGain > 0.5) {
+    if (repGain >= 2) {
+      return { type: 'push', text: `✅ +${repGain.toFixed(0)} reps at the same weight — great progress. Once you hit ${high} on all sets, bump to ${(latestTop + jump).toFixed(1)}kg. Until then, keep adding reps.` };
+    } else if (repGain >= 0) {
+      return { type: 'hold', text: `✅ Small gain (+${e1rmGain.toFixed(1)}%). Aim for ${Math.min(high, Math.ceil(latestAvgReps + 1))} reps at ${latestTop}kg, or +${jump}kg if you're already at the top of your ${rangeText} range.` };
+    } else {
+      return { type: 'hold', text: `✅ Weight held steady. Chase 1-2 more reps at ${latestTop}kg this session. Build to ${high} reps across all sets, then add load. That's progressive overload in your ${rangeText} zone.` };
+    }
+  }
+  else if (e1rmGain >= -0.5) {
+    return { type: 'hold', text: `➡️ Flat from last session. Could be fatigue, food, or a rough day. Aim for the same or +1 rep at ${latestTop}kg (target ${rangeText}). If flat again next time, dial back 10% and rebuild.` };
+  }
+  else {
+    return { type: 'deload', text: `📉 Down ${Math.abs(e1rmGain).toFixed(1)}%. Check sleep, food, and form. Repeat ${latestTop}kg with a slow eccentric (3s down), targeting ${rangeText}. If it drops again, reduce to ${(latestTop * 0.95).toFixed(1)}kg and rebuild clean.` };
+  }
+}
+
+function renderWeekIndicator() {
+  document.getElementById('weekIndicator').innerHTML = `
+    <span class="week-label">Week</span>
+    <span class="week-value">Week ${currentWeek} · Variant ${currentWeek === 'A' ? '1' : '2'}</span>
+    <button onclick="toggleWeek()" style="flex: 0; padding: 8px 16px; font-size: 13px; font-weight: 700; color: #fff; background: linear-gradient(135deg, #ff6b35, #f7c948); border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 2px 8px rgba(255,107,53,0.4); white-space: nowrap;">⇄ Switch to ${currentWeek === 'A' ? 'B' : 'A'}</button>
+    <button class="reset-btn" onclick="importData()" style="flex: 0; background: #2a3a3a; border-color: #3a5a5a;" title="Restore from backup JSON">📥</button>
+    <button class="reset-btn" onclick="exportData()" style="flex: 0; background: #2a3a3a; border-color: #3a5a5a;" title="Export all data as JSON">💾</button>
+  `;
+}
+
+async function toggleWeek() {
+  currentWeek = currentWeek === 'A' ? 'B' : 'A';
+  selectedDay = null;
+  reorderMode = false;
+  await saveWeek();
+  render();
+}
+
+function renderDaySelector() {
+  const days = currentWeek === 'A' ? WEEK_A : WEEK_B;
+  return `<div class="day-selector">${days.map(key => {
+    const day = SPLIT[key];
+    let lastDate = null;
+    for (const ex of day.exercises) {
+      for (const l of (logs[ex.id] || [])) {
+        if (!lastDate || new Date(l.date) > new Date(lastDate)) lastDate = l.date;
+      }
+    }
+    const lastText = lastDate ? `Last: ${daysAgo(lastDate)}` : 'Not logged yet';
+    const completedText = getLastCompletedForDay(key);
+    const completedLine = completedText ? `<span class="day-completed">✓ Completed ${completedText}</span>` : '';
+    return `
+      <button class="day-btn ${selectedDay === key ? 'active' : ''}" onclick="selectDay('${key}')">
+        ${day.name}
+        <span class="day-sub">${lastText}<br>${completedLine}</span>
+      </button>`;
+  }).join('')}</div>`;
+}
+
+function selectDay(key) {
+  selectedDay = key;
+  reorderMode = false;
+  render();
+}
+
+function renderSession() {
+  if (!selectedDay) {
+    return `<div class="empty"><p style="color: #888; font-size: 14px; margin-top: 20px;">👆 Pick a day above to start logging</p></div>`;
+  }
+  
+  const day = SPLIT[selectedDay];
+  const isCompleted = lastCompleted[selectedDay];
+  return `
+    <div class="autosave-note">✓ Sets save automatically — mark complete when done</div>
+    <button class="reorder-toggle ${reorderMode ? 'active' : ''}" onclick="toggleReorder()">
+      ${reorderMode ? '✓ Done Reordering' : '↕ Reorder Exercises'}
+    </button>
+    <div class="section-title">${day.name} · ${day.exercises.length} exercises</div>
+    <div id="exerciseList">
+      ${day.exercises.map((ex, idx) => renderExerciseCard(ex, idx, day.exercises.length)).join('')}
+    </div>
+    ${isCompleted ? `
+      <div style="background: #1a2a1a; border: 1px solid #4ade80; padding: 12px; margin-top: 16px; border-radius: 8px; text-align: center; margin-bottom: 12px;">
+        <div style="color: #4ade80; font-weight: 600; margin-bottom: 8px;">✓ Day completed</div>
+        <button class="btn" onclick="undoMarkDayComplete('${selectedDay}'); render();" style="width:100%;padding:10px;background:#2a1a1a;color:#ff6b35;border:1px solid #ff6b35;font-size:12px;">↩ Undo</button>
+      </div>
+    ` : `
+      <button class="btn" onclick="completeDay('${selectedDay}')" style="width:100%;margin-top:16px;padding:12px;">
+        ✓ Mark Day Complete
+      </button>
+    `}
+  `;
+}
+
+function getSessionSummary(dayKey) {
+  const day = SPLIT[dayKey];
+  const today = localDateStr(new Date());
+  const prs = [];
+  const incomplete = [];
+  let improved = 0, regressed = 0, flat = 0, exercisesLogged = 0;
+  let volumeToday = 0, volumeLast = 0;
+  let hasComparison = false;
+  
+  for (const ex of day.exercises) {
+    const allLogs = logs[ex.id] || [];
+    const todaySets = allLogs.filter(l => localDateStr(l.date) === today && l.tag !== 'warmup' && l.tag !== 'dropset');
+    const priorLogs = allLogs.filter(l => localDateStr(l.date) !== today);
+    const priorSessions = groupByDate(priorLogs); // most recent first
+    
+    const doneCount = todaySets.length;
+    if (doneCount < ex.sets) {
+      incomplete.push({ name: ex.name, done: doneCount, target: ex.sets });
+    }
+    if (doneCount === 0) continue;
+    exercisesLogged++;
+    
+    const todayVol = todaySets.reduce((s, x) => s + x.weight * x.reps, 0);
+    volumeToday += todayVol;
+    const todayBestE1RM = Math.max(...todaySets.map(s => s.weight * (1 + s.reps / 30)));
+    
+    // All-time prior best → PR check
+    let priorBestE1RM = 0;
+    for (const l of priorLogs) {
+      const e = l.weight * (1 + l.reps / 30);
+      if (e > priorBestE1RM) priorBestE1RM = e;
+    }
+    if (priorLogs.length > 0 && todayBestE1RM > priorBestE1RM * 1.01) {
+      prs.push({ name: ex.name, e1rm: Math.round(todayBestE1RM) });
+    }
+    
+    // vs most recent prior session
+    if (priorSessions.length > 0) {
+      hasComparison = true;
+      const lastSets = priorSessions[0].sets;
+      volumeLast += lastSets.reduce((s, x) => s + x.weight * x.reps, 0);
+      const lastBestE1RM = Math.max(...lastSets.map(s => s.weight * (1 + s.reps / 30)));
+      if (todayBestE1RM > lastBestE1RM * 1.01) improved++;
+      else if (todayBestE1RM < lastBestE1RM * 0.99) regressed++;
+      else flat++;
+    }
+  }
+  
+  // Verdict
+  let verdict, verdictColor, verdictEmoji;
+  if (!hasComparison) {
+    verdict = 'Baseline set'; verdictColor = '#60a5fa'; verdictEmoji = '📋';
+  } else if (prs.length > 0) {
+    verdict = 'PR session!'; verdictColor = '#fbbf24'; verdictEmoji = '🏆';
+  } else if (improved > regressed) {
+    verdict = 'Stronger than last time'; verdictColor = '#4ade80'; verdictEmoji = '📈';
+  } else if (regressed > improved) {
+    verdict = 'Down from last time'; verdictColor = '#fb923c'; verdictEmoji = '📉';
+  } else {
+    verdict = 'Holding steady'; verdictColor = '#60a5fa'; verdictEmoji = '➡️';
+  }
+  
+  const volChange = volumeLast > 0 ? ((volumeToday - volumeLast) / volumeLast) * 100 : null;
+  
+  return { prs, incomplete, improved, regressed, flat, volumeToday, volumeLast, volChange, exercisesLogged, verdict, verdictColor, verdictEmoji, hasComparison, dayName: day.name };
+}
+
+function showSessionSummaryModal(s) {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 999; padding: 16px;';
+  overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+  
+  const volLine = s.volChange !== null
+    ? `<div style="display:flex; justify-content:space-between; padding:8px 0; border-top:1px solid #2a2a2a;">
+         <span style="color:#aaa; font-size:13px;">Total volume</span>
+         <span style="font-size:13px; font-weight:600; color:${s.volChange >= 0 ? '#4ade80' : '#fb923c'};">${Math.round(s.volumeToday).toLocaleString()}kg <span style="font-size:11px;">(${s.volChange >= 0 ? '+' : ''}${s.volChange.toFixed(0)}%)</span></span>
+       </div>`
+    : `<div style="display:flex; justify-content:space-between; padding:8px 0; border-top:1px solid #2a2a2a;">
+         <span style="color:#aaa; font-size:13px;">Total volume</span>
+         <span style="font-size:13px; font-weight:600; color:#ccc;">${Math.round(s.volumeToday).toLocaleString()}kg</span>
+       </div>`;
+  
+  overlay.innerHTML = `
+    <div style="background:#161616; border:1px solid #2a2a2a; border-radius:14px; padding:22px; max-width:380px; width:100%; max-height:85vh; overflow-y:auto;">
+      <div style="text-align:center; margin-bottom:18px;">
+        <div style="font-size:36px; margin-bottom:4px;">${s.verdictEmoji}</div>
+        <div style="font-size:18px; font-weight:700; color:${s.verdictColor};">${s.verdict}</div>
+        <div style="font-size:12px; color:#888; margin-top:2px;">${s.dayName} complete</div>
+      </div>
+      
+      ${s.prs.length > 0 ? `
+        <div style="background:#2a2410; border:1px solid #fbbf24; border-radius:10px; padding:12px; margin-bottom:14px;">
+          <div style="font-size:12px; font-weight:700; color:#fbbf24; margin-bottom:8px;">🏆 ${s.prs.length} NEW PR${s.prs.length === 1 ? '' : 'S'}</div>
+          ${s.prs.map(p => `<div style="font-size:12px; color:#ddd; padding:2px 0;">${p.name} — e1RM ${p.e1rm}kg</div>`).join('')}
+        </div>
+      ` : ''}
+      
+      ${s.hasComparison ? `
+        <div style="background:#141414; border-radius:10px; padding:12px; margin-bottom:14px;">
+          <div style="font-size:11px; color:#666; text-transform:uppercase; letter-spacing:.5px; margin-bottom:8px;">vs last time</div>
+          <div style="display:flex; justify-content:space-around; text-align:center;">
+            <div><div style="font-size:20px; font-weight:700; color:#4ade80;">${s.improved}</div><div style="font-size:10px; color:#888;">improved</div></div>
+            <div><div style="font-size:20px; font-weight:700; color:#60a5fa;">${s.flat}</div><div style="font-size:10px; color:#888;">held</div></div>
+            <div><div style="font-size:20px; font-weight:700; color:#fb923c;">${s.regressed}</div><div style="font-size:10px; color:#888;">down</div></div>
+          </div>
+          ${volLine}
+        </div>
+      ` : `
+        <div style="background:#141414; border-radius:10px; padding:12px; margin-bottom:14px; font-size:12px; color:#aaa; line-height:1.5;">
+          First time logging this day — this is your baseline. Next time you do it, I'll compare and rank your progress.
+          ${volLine}
+        </div>
+      `}
+      
+      ${s.incomplete.length > 0 ? `
+        <div style="background:#2a1a10; border:1px solid #fb923c; border-radius:10px; padding:12px; margin-bottom:14px;">
+          <div style="font-size:12px; font-weight:700; color:#fb923c; margin-bottom:8px;">⚠ ${s.incomplete.length} exercise${s.incomplete.length === 1 ? '' : 's'} incomplete</div>
+          ${s.incomplete.map(i => `<div style="font-size:12px; color:#ddd; padding:2px 0;">${i.name} — ${i.done}/${i.target} sets${i.done === 0 ? ' (skipped)' : ''}</div>`).join('')}
+        </div>
+      ` : `
+        <div style="background:#15240f; border:1px solid #4ade80; border-radius:10px; padding:10px; margin-bottom:14px; text-align:center; font-size:12px; color:#4ade80;">✓ All sets completed</div>
+      `}
+      
+      <button onclick="this.closest('div[style*=fixed]').remove()" style="width:100%; padding:12px; background:#ff6b35; color:#fff; border:none; border-radius:8px; font-weight:600; cursor:pointer; font-size:14px;">Done</button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+}
+
+async function completeDay(dayKey) {
+  const summary = getSessionSummary(dayKey);
+  await markDayComplete(dayKey);
+  render();
+  showSessionSummaryModal(summary);
+}
+
+function toggleReorder() {
+  reorderMode = !reorderMode;
+  render();
+}
+
+async function moveExercise(idx, direction) {
+  const day = SPLIT[selectedDay];
+  const newIdx = idx + direction;
+  if (newIdx < 0 || newIdx >= day.exercises.length) return;
+  const arr = day.exercises;
+  [arr[idx], arr[newIdx]] = [arr[newIdx], arr[idx]];
+  await saveOrder();
+  render();
+}
+
+function renderExerciseCard(ex, idx, totalCount) {
+  if (reorderMode) {
+    return `
+      <div class="card reorder-mode">
+        <div class="exercise-header">
+          <div>
+            <div class="exercise-name">${idx + 1}. ${ex.name}</div>
+            <div class="exercise-meta">${ex.sets} sets</div>
+          </div>
+          <span class="reorder-handle">⋮⋮</span>
+        </div>
+        <div class="move-buttons">
+          <button class="move-btn" onclick="moveExercise(${idx}, -1)" ${idx === 0 ? 'disabled' : ''}>↑ Up</button>
+          <button class="move-btn" onclick="moveExercise(${idx}, 1)" ${idx === totalCount - 1 ? 'disabled' : ''}>↓ Down</button>
+        </div>
+      </div>
+    `;
+  }
+
+  const rec = getRec(ex.id, ex.sets, ex.reps);
+  const todaysSets = getTodaysSets(ex.id);
+  const today = localDateStr(new Date());
+  const allLogs = (logs[ex.id] || []).filter(l => localDateStr(l.date) !== today);
+  const sessions = groupByDate(allLogs);
+  const lastSession = sessions[0];
+
+  // Target sets with flexibility to add/remove
+  const targetSets = ex.sets;
+  const setsTableRows = [];
+  
+  // Count regular (non-warmup, non-dropset) sets logged today
+  const regularSetCount = todaysSets.filter(s => s.tag !== 'warmup' && s.tag !== 'dropset').length;
+  
+  // Show all logged sets first
+  for (let i = 0; i < todaysSets.length; i++) {
+    const setData = todaysSets[i];
+    const isWarmup = setData.tag === 'warmup';
+    const isDropset = setData.tag === 'dropset';
+    const className = isWarmup ? 'warmup' : isDropset ? 'dropset' : 'complete';
+    const numClass = isWarmup ? 'warmup' : isDropset ? 'dropset' : 'complete';
+    const label = isWarmup ? 'W' : isDropset ? 'D' : '✓';
+    
+    setsTableRows.push(`
+      <div class="set-row ${className}">
+        <span class="set-num ${numClass}">${label}</span>
+        <input type="number" step="0.5" value="${setData.weight}" style="background:#0d0d0d;border:1px solid #2a2a2a;color:#fff;padding:4px;border-radius:4px;font-size:12px;width:100%;text-align:center" onchange="updateLog('${ex.id}','${setData.date}',this.value,'weight')">
+        <input type="number" value="${setData.reps}" style="background:#0d0d0d;border:1px solid #2a2a2a;color:#fff;padding:4px;border-radius:4px;font-size:12px;width:100%;text-align:center" onchange="updateLog('${ex.id}','${setData.date}',this.value,'reps')">
+        <button class="delete-btn" onclick="deleteLog('${ex.id}','${setData.date}')">✕</button>
+      </div>
+    `);
+  }
+  
+  // Always show input form for the next regular set if we haven't hit target
+  if (regularSetCount < targetSets) {
+    const nextSetNum = regularSetCount + 1;
+    setsTableRows.push(`
+      <div class="log-form">
+        <span class="set-num">${nextSetNum}</span>
+        <input type="number" step="0.5" placeholder="kg" id="w-${ex.id}-set${nextSetNum}">
+        <input type="number" placeholder="reps" id="r-${ex.id}-set${nextSetNum}">
+        <button class="btn" onclick="logRegularSet('${ex.id}')">Log</button>
+      </div>
+    `);
+  }
+
+  const setsDoneCount = todaysSets.length;
+  const workingSetsDone = todaysSets.filter(s => s.tag !== 'warmup').length;
+
+  return `
+    <div class="card">
+      <div class="exercise-header">
+        <div>
+          <div class="exercise-name">${ex.name}${ex.warmup ? ' 🔥' : ''}${ex.superset ? ' ↔' : ''}${ex.dropset ? ' ↓' : ''}</div>
+          <div class="exercise-meta">${ex.reps ? ex.reps + ' reps · ' : ''}${workingSetsDone}/${targetSets} today</div>
+        </div>
+        <span class="target-sets" style="text-align:right; line-height:1.4;">${targetSets} sets<br><span style="font-size:10px; color:#666; font-weight:400;">${sessions.length} session${sessions.length === 1 ? '' : 's'}</span></span>
+      </div>
+      ${ex.warmup ? (() => {
+        const topWeight = lastSession ? Math.max(...lastSession.sets.map(s => s.weight)) : null;
+        const ramp = getWarmupRamp(topWeight);
+        if (ramp) {
+          const rampText = ramp.map(r => `${r.weight}kg×${r.reps}`).join(' → ');
+          return `<div style="font-size: 11px; color: #fbbf24; background: #78350f; padding: 8px; border-radius: 4px; margin-bottom: 8px; border-left: 3px solid #fbbf24;">🔥 <strong>WARMUP:</strong> ${rampText}<br><span style="color:#d4a574; font-size:10px;">Based on last working weight (${topWeight}kg)</span></div>`;
+        }
+        return `<div style="font-size: 11px; color: #fbbf24; background: #78350f; padding: 6px 8px; border-radius: 4px; margin-bottom: 8px; border-left: 3px solid #fbbf24;">🔥 WARMUP REQUIRED — Log a working set to see your warmup ramp</div>`;
+      })() : ''}
+      ${ex.superset ? `<div style="font-size: 11px; color: #4ade80; background: #15803d; padding: 6px 8px; border-radius: 4px; margin-bottom: 8px; border-left: 3px solid #4ade80;">↔ SUPERSET — Pair with next exercise on same stack</div>` : ''}
+      ${ex.dropset ? `<div style="font-size: 11px; color: #93c5fd; background: #1e40af; padding: 6px 8px; border-radius: 4px; margin-bottom: 8px; border-left: 3px solid #93c5fd;">↓ DROP SET — Last set to failure, then reduce weight</div>` : ''}
+      ${ex.notes ? `<div style="font-size: 12px; color: #aaa; background: #0d0d0d; padding: 8px; border-radius: 6px; margin-bottom: 8px; border-left: 3px solid #ff6b35; line-height: 1.4;">${ex.notes}</div>` : ''}
+      <div class="recommendation rec-${rec.type}">${rec.text}</div>
+      ${lastSession ? `<div class="last-session"><strong>Last (${daysAgo(lastSession.date)}):</strong> ${formatSets(lastSession.sets)}</div>` : ''}
+      <div class="todays-sets">
+        <div class="todays-sets-header">
+          <span>Today's Sets</span>
+          <span style="font-size:10px;color:#888">${workingSetsDone} working${setsDoneCount > workingSetsDone ? ` · ${setsDoneCount - workingSetsDone} warmup` : ''}</span>
+        </div>
+        ${setsTableRows.join('')}
+      </div>
+      <div class="set-options">
+        <button class="btn-small" onclick="addWarmup('${ex.id}')">+ Warmup</button>
+        <button class="btn-small" onclick="addDropset('${ex.id}')">+ Drop Set</button>
+        <button class="btn-small" onclick="toggleHistory('${ex.id}')">${showHistory[ex.id] ? '▴ History' : '▾ History'}</button>
+      </div>
+      ${showHistory[ex.id] ? renderHistory(ex.id) : ''}
+    </div>
+  `;
+}
+
+async function addWarmup(exId) {
+  if (!logs[exId]) logs[exId] = [];
+  logs[exId].push({ date: new Date().toISOString(), weight: 20, reps: 10, tag: 'warmup', day: selectedDay });
+  await save();
+  render();
+}
+
+async function addDropset(exId) {
+  if (!logs[exId]) logs[exId] = [];
+  logs[exId].push({ date: new Date().toISOString(), weight: 50, reps: 5, tag: 'dropset', day: selectedDay });
+  await save();
+  render();
+}
+
+function renderHistory(exId) {
+  const sessions = groupByDate(logs[exId] || []);
+  if (sessions.length === 0) return '<div class="history"><div style="color:#666;font-size:11px">No history yet</div></div>';
+  return `<div class="history">${sessions.slice(0, 12).map(s => `
+    <div class="history-row">
+      <span>${new Date(s.date).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'2-digit'})}</span>
+      <span>${formatSets(s.sets)}</span>
+    </div>
+  `).join('')}</div>`;
+}
+
+function toggleHistory(exId) {
+  showHistory[exId] = !showHistory[exId];
+  render();
+}
+
+async function logRegularSet(exId) {
+  const regularSetCount = getTodaysSets(exId).filter(s => s.tag !== 'warmup' && s.tag !== 'dropset').length;
+  const nextSetNum = regularSetCount + 1;
+  const wEl = document.getElementById(`w-${exId}-set${nextSetNum}`);
+  const rEl = document.getElementById(`r-${exId}-set${nextSetNum}`);
+  if (!wEl || !rEl) return;
+  const w = parseFloat(wEl.value);
+  const r = parseInt(rEl.value);
+  if (!w || !r || w <= 0 || r <= 0) return;
+  if (!logs[exId]) logs[exId] = [];
+  
+  // Check if this is a new PR — only if the exercise has prior history
+  const todayStr = localDateStr(new Date());
+  const priorLogs = logs[exId].filter(l => localDateStr(l.date) !== todayStr);
+  const hasPriorHistory = priorLogs.length > 0;
+  const newE1RM = w * (1 + r / 30);
+  let priorBestE1RM = 0;
+  for (const l of priorLogs) {
+    const e = l.weight * (1 + l.reps / 30);
+    if (e > priorBestE1RM) priorBestE1RM = e;
+  }
+  const isNewPR = hasPriorHistory && newE1RM > priorBestE1RM * 1.01;
+  
+  logs[exId].push({ date: new Date().toISOString(), weight: w, reps: r, day: selectedDay });
+  
+  await save();
+  
+  // Celebrate new PR
+  if (isNewPR) {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fbbf24; color: #000; padding: 30px; border-radius: 12px; font-weight: 700; font-size: 20px; z-index: 998; text-align: center; box-shadow: 0 8px 32px rgba(251, 191, 36, 0.5);';
+    overlay.textContent = `🏆 NEW PR!\n${w}kg × ${r} reps\ne1RM: ${newE1RM.toFixed(0)}kg`;
+    document.body.appendChild(overlay);
+    setTimeout(() => overlay.remove(), 4000);
+  }
+  
+  startTimer();
+  render();
+}
+
+async function logSet(exId, setIndex) {
+  const wEl = document.getElementById(`w-${exId}-${setIndex}`);
+  const rEl = document.getElementById(`r-${exId}-${setIndex}`);
+  if (!wEl || !rEl) return;
+  const w = parseFloat(wEl.value);
+  const r = parseInt(rEl.value);
+  if (!w || !r || w <= 0 || r <= 0) return;
+  if (!logs[exId]) logs[exId] = [];
+  logs[exId].push({ date: new Date().toISOString(), weight: w, reps: r, day: selectedDay });
+  await save();
+  startTimer();
+  render();
+  setTimeout(() => {
+    const newW = document.getElementById(`w-${exId}-${setIndex+1}`);
+    if (newW) newW.focus();
+  }, 50);
+}
+
+async function deleteLog(exId, date) {
+  logs[exId] = (logs[exId] || []).filter(l => l.date !== date);
+  await save();
+  render();
+}
+
+async function updateLog(exId, date, newValue, field) {
+  const log = (logs[exId] || []).find(l => l.date === date);
+  if (!log) return;
+  if (field === 'weight') {
+    log.weight = parseFloat(newValue);
+  } else if (field === 'reps') {
+    log.reps = parseInt(newValue);
+  }
+  if (log.weight > 0 && log.reps > 0) {
+    await save();
+  }
+}
+
+function renderProgress() {
+  return `
+    <div style="display: flex; gap: 6px; margin-bottom: 14px;">
+      <button onclick="progressTab = 'lifts'; render();" style="flex: 1; padding: 8px; background: ${progressTab === 'lifts' ? '#ff6b35' : '#2a2a2a'}; color: #fff; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Lifts</button>
+      <button onclick="progressTab = 'runs'; render();" style="flex: 1; padding: 8px; background: ${progressTab === 'runs' ? '#ff6b35' : '#2a2a2a'}; color: #fff; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Runs</button>
+    </div>
+    ${progressTab === 'lifts' ? renderLiftProgress() : renderRunProgress()}
+  `;
+}
+
+function renderLiftProgress() {
+  const allExercises = [];
+  for (const [dayKey, day] of Object.entries(SPLIT)) {
+    for (const ex of day.exercises) {
+      // Only count logs that were tagged to this specific day (or untagged legacy logs)
+      const dayLogs = (logs[ex.id] || []).filter(l => !l.day || l.day === dayKey);
+      if (dayLogs.length > 0) {
+        allExercises.push({ ...ex, dayName: day.name, dayKey, _dayLogs: dayLogs });
+      }
+    }
+  }
+  if (allExercises.length === 0) {
+    return '<div style="color: #666; font-size: 14px; padding: 20px; text-align: center;">Log some sessions to see your progression here.</div>';
+  }
+
+  allExercises.forEach(ex => {
+    const sorted = ex._dayLogs.slice().sort((a,b) => new Date(a.date) - new Date(b.date));
+    const sessions = groupByDate(sorted).reverse();
+    ex._sessions = sessions;
+    if (sessions.length >= 2) {
+      const first = avgE1RM(sessions[sessions.length - 1].sets);
+      const last = avgE1RM(sessions[0].sets);
+      ex._change = ((last - first) / first) * 100;
+      ex._e1rm = last;
+    } else {
+      ex._change = 0;
+      ex._e1rm = avgE1RM(sessions[0].sets);
+    }
+  });
+
+  const filtered = progressFilter === 'all' ? allExercises : allExercises.filter(ex => ex.dayName === progressFilter);
+  filtered.sort((a,b) => a._change - b._change);
+  const dayNames = [...new Set(allExercises.map(e => e.dayName))];
+
+  return `
+    <div style="display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap;">
+      <div style="display: inline-block; padding: 6px 12px; background: ${progressFilter === 'all' ? '#ff6b35' : '#2a2a2a'}; color: #fff; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 600;" onclick="progressFilter = 'all'; render();">All</div>
+      ${dayNames.map(d => `<div style="display: inline-block; padding: 6px 12px; background: ${progressFilter === d ? '#ff6b35' : '#2a2a2a'}; color: #fff; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 600;" onclick="progressFilter = '${d}'; render();">${d}</div>`).join('')}
+    </div>
+    
+    <div style="font-size: 13px; color: #888; margin-bottom: 12px;">📊 Estimated 1-Rep Max Progress</div>
+    ${filtered.map(ex => {
+      const sessions = ex._sessions;
+      const e1rms = sessions.map(s => avgE1RM(s.sets));
+      const changeClass = ex._change > 1 ? 'color: #4ade80' : ex._change < -1 ? 'color: #ef4444' : 'color: #888';
+      const sign = ex._change > 0 ? '+' : '';
+      const focus = ex._change <= 0 && sessions.length >= 2 ? '🎯 ' : '';
+      return `
+        <div style="background: #161616; border: 1px solid #222; border-radius: 8px; padding: 12px; margin-bottom: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+            <div>
+              <div style="font-weight: 600; font-size: 13px; color: #fff;">${focus}${ex.name}</div>
+              <div style="font-size: 11px; color: #666;">${ex.dayName} · ${sessions.length} sessions</div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-size: 13px; font-weight: 600; color: #ff6b35;">${ex._e1rm.toFixed(1)}kg</div>
+              <div style="font-size: 12px; font-weight: 600; ${changeClass}">${sign}${ex._change.toFixed(1)}%</div>
+            </div>
+          </div>
+          ${sessions.length > 1 ? `
+            <div style="display: flex; gap: 2px; height: 20px; background: #0d0d0d; border-radius: 4px; padding: 2px;">
+              ${sessions.map((s, idx) => {
+                const v = avgE1RM(s.sets);
+                const minVal = Math.min(...e1rms) * 0.95;
+                const maxVal = Math.max(...e1rms) * 1.05;
+                const h = ((v - minVal) / (maxVal - minVal)) * 100;
+                return `<div style="flex: 1; height: 100%; background: linear-gradient(180deg, #ff6b35, #f7c948); border-radius: 2px; opacity: ${0.5 + (h / 100) * 0.5};" title="${v.toFixed(1)}kg"></div>`;
+              }).join('')}
+            </div>
+            <div style="font-size: 10px; color: #666; margin-top: 4px;">${formatSets(sessions[0].sets)} (latest) → ${formatSets(sessions[sessions.length - 1].sets)} (first)</div>
+          ` : ''}
+        </div>
+      `;
+    }).join('')}
+  `;
+}
+
+function renderRunProgress() {
+  if (runningLogs.length === 0) {
+    return '<div style="color: #666; font-size: 14px; padding: 20px; text-align: center;">Log some runs to see your progression here.</div>';
+  }
+
+  const byType = { regular: [], treadmill: [], interval: [], 'interval-treadmill': [] };
+  runningLogs.forEach(run => {
+    byType[run.type].push(run);
+  });
+
+  const typeNames = { regular: '🏃 Regular Runs', treadmill: '🏃 Treadmill', interval: '⚡ Interval', 'interval-treadmill': '⚡ Interval Treadmill' };
+  const activeTypes = Object.keys(byType).filter(t => byType[t].length > 0);
+
+  return `
+    <div style="display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap;">
+      ${activeTypes.map(t => `
+        <div style="display: inline-block; padding: 6px 12px; background: ${progressFilter === t ? '#ff6b35' : '#2a2a2a'}; color: #fff; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 600;" onclick="progressFilter = '${t}'; render();">${typeNames[t]}</div>
+      `).join('')}
+    </div>
+    
+    ${activeTypes.map(type => {
+      const runs = byType[type];
+      if (runs.length === 0 || (progressFilter !== 'all' && progressFilter !== type)) return '';
+      
+      const sortedRuns = runs.slice().sort((a,b) => new Date(a.date) - new Date(b.date));
+      const totalDist = runs.reduce((sum, r) => sum + r.distance, 0);
+      const totalTime = runs.reduce((sum, r) => sum + r.time, 0);
+      const avgSpeed = (totalDist / totalTime * 60).toFixed(1);
+      const fastestPace = Math.min(...runs.map(r => r.time / r.distance));
+      const fastestPaceMin = Math.floor(fastestPace);
+      const fastestPaceSec = Math.round((fastestPace - fastestPaceMin) * 60);
+      
+      const distances = sortedRuns.map(r => r.distance);
+      const minDist = Math.min(...distances) * 0.9;
+      const maxDist = Math.max(...distances) * 1.1;
+      
+      return `
+        <div style="margin-bottom: 16px;">
+          <div style="font-size: 13px; color: #888; margin-bottom: 10px; font-weight: 600;">${typeNames[type]}</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+            <div style="background: #161616; border: 1px solid #222; border-radius: 8px; padding: 10px; text-align: center;">
+              <div style="font-size: 11px; color: #666;">Total Distance</div>
+              <div style="font-size: 16px; font-weight: 600; color: #ff6b35;">${totalDist.toFixed(1)}km</div>
+              <div style="font-size: 10px; color: #666;">in ${runs.length} runs</div>
+            </div>
+            <div style="background: #161616; border: 1px solid #222; border-radius: 8px; padding: 10px; text-align: center;">
+              <div style="font-size: 11px; color: #666;">Avg Speed</div>
+              <div style="font-size: 16px; font-weight: 600; color: #ff6b35;">${avgSpeed} km/h</div>
+              <div style="font-size: 10px; color: #666;">overall</div>
+            </div>
+            <div style="background: #161616; border: 1px solid #222; border-radius: 8px; padding: 10px; text-align: center;">
+              <div style="font-size: 11px; color: #666;">Best Pace</div>
+              <div style="font-size: 16px; font-weight: 600; color: #ff6b35;">${fastestPaceMin}:${fastestPaceSec.toString().padStart(2, '0')}/km</div>
+              <div style="font-size: 10px; color: #666;">fastest</div>
+            </div>
+          </div>
+          
+          <div style="font-size: 12px; color: #888; margin-bottom: 8px;">Distance Trend</div>
+          <div style="background: #161616; border: 1px solid #222; border-radius: 8px; padding: 10px;">
+            <div style="display: flex; gap: 2px; height: 30px; align-items: flex-end;">
+              ${sortedRuns.map(r => {
+                const h = ((r.distance - minDist) / (maxDist - minDist)) * 100;
+                return `<div style="flex: 1; background: linear-gradient(180deg, #4ade80, #22c55e); border-radius: 2px; height: ${Math.max(5, h)}%; min-height: 5px;" title="${r.distance.toFixed(1)}km - ${new Date(r.date).toLocaleDateString()}"></div>`;
+              }).join('')}
+            </div>
+            <div style="font-size: 10px; color: #666; margin-top: 6px; text-align: center;">Longest: ${Math.max(...distances).toFixed(1)}km · Shortest: ${Math.min(...distances).toFixed(1)}km</div>
+          </div>
+        </div>
+      `;
+    }).join('')}
+  `;
+}
+
+function setFilter(f) { progressFilter = f; render(); }
+
+// ====== Rest Timer ======
+function toggleTimer() {
+  if (timerRunning) pauseTimer();
+  else startTimer();
+}
+
+function startTimer() {
+  // If timer is at 0 or finished, start a fresh rest period
+  if (timerSeconds <= 0 || timerEndedNotified) {
+    timerSeconds = REST_DURATION;
+    timerEndedNotified = false;
+  }
+  timerRunning = true;
+  // Anchor to an absolute end time so backgrounding doesn't lose track
+  timerEndTime = Date.now() + timerSeconds * 1000;
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(tickTimer, 250);
+  tickTimer();
+}
+
+function tickTimer() {
+  if (!timerRunning || timerEndTime === null) return;
+  const remaining = Math.max(0, Math.round((timerEndTime - Date.now()) / 1000));
+  timerSeconds = remaining;
+  if (remaining <= 0) {
+    timerSeconds = 0;
+    pauseTimer();
+    if (!timerEndedNotified) {
+      timerEndedNotified = true;
+      if (navigator.vibrate) navigator.vibrate([200, 100, 200, 100, 200]);
+      playBeep();
+    }
+  }
+  updateTimerUI();
+}
+
+function pauseTimer() {
+  timerRunning = false;
+  // Capture remaining time so resume continues from where it left off
+  if (timerEndTime !== null) {
+    timerSeconds = Math.max(0, Math.round((timerEndTime - Date.now()) / 1000));
+  }
+  timerEndTime = null;
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = null;
+  updateTimerUI();
+}
+
+function resetTimer() {
+  pauseTimer();
+  timerSeconds = REST_DURATION;
+  timerEndTime = null;
+  timerEndedNotified = false;
+  updateTimerUI();
+}
+
+// Re-sync the moment the app comes back to the foreground
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && timerRunning) tickTimer();
+});
+
+function updateTimerUI() {
+  const display = document.getElementById('timerDisplay');
+  const timer = document.getElementById('restTimer');
+  const btn = document.getElementById('timerStartBtn');
+  const mins = Math.floor(timerSeconds / 60);
+  const secs = timerSeconds % 60;
+  display.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+
+  timer.classList.remove('running', 'warning', 'done');
+  if (timerSeconds === 0) {
+    timer.classList.add('done');
+    display.textContent = "GO!";
+  } else if (timerRunning && timerSeconds <= 10) {
+    timer.classList.add('warning');
+  } else if (timerRunning) {
+    timer.classList.add('running');
+  }
+  btn.textContent = timerRunning ? '⏸' : '▶';
+}
+
+let audioCtx = null;
+function playBeep() {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    for (let i = 0; i < 3; i++) {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.frequency.value = 880;
+      osc.type = 'sine';
+      gain.gain.setValueAtTime(0, audioCtx.currentTime + i * 0.4);
+      gain.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + i * 0.4 + 0.05);
+      gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + i * 0.4 + 0.25);
+      osc.start(audioCtx.currentTime + i * 0.4);
+      osc.stop(audioCtx.currentTime + i * 0.4 + 0.3);
+    }
+  } catch (e) {}
+}
+
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    activeTab = t.dataset.tab;
+    reorderMode = false;
+    render();
+  });
+});
+
+// ===== RUNNING PROGRAM: 12k @ 4:30/km by Sep 12 2026 =====
+const RACE_DATE = new Date('2026-09-12T00:00:00');
+const PROGRAM_START = new Date('2026-06-01T00:00:00');
+const GOAL_PACE = 4.5; // min/km (4:30)
+const GOAL_DIST = 12; // km
+
+// Pace helpers: pace in min/km <-> speed in km/h
+function paceToSpeed(p) { return 60 / p; }
+function speedToPace(s) { return 60 / s; }
+function fmtPace(p) { const m = Math.floor(p); const s = Math.round((p - m) * 60); return `${m}:${s.toString().padStart(2,'0')}`; }
+
+// Each session: { type, label, dist (km), pace (min/km), desc, outside (bool), benchmark (optional) }
+// 15-week program, 3 sessions/week. Week 1 starts Jun 1. Race week = taper + race.
+const RUN_PROGRAM = [
+  // PHASE 1: BASE (Weeks 1-4)
+  { week: 1, phase: 'Base', focus: 'Settle into easy aerobic running. Build the habit.', sessions: [
+    { type: 'easy', label: 'Easy Run', dist: 5, pace: 5.83, desc: 'Conversational pace. You should be able to talk. This is your aerobic foundation — slow is the point.' },
+    { type: 'easy', label: 'Easy Run', dist: 5, pace: 5.83, desc: 'Same as Monday. Keep it relaxed, controlled breathing. No pushing.' },
+    { type: 'long', label: 'Long Run', dist: 7, pace: 5.83, desc: 'Time on feet. Slow and steady — building endurance, not speed. Finish feeling like you had more.' }
+  ]},
+  { week: 2, phase: 'Base', focus: 'Extend long run. Introduce light pace at the end.', sessions: [
+    { type: 'easy', label: 'Easy Run', dist: 5, pace: 5.75, desc: 'Easy aerobic. Slightly quicker than last week if it feels natural, but stay comfortable.' },
+    { type: 'easy+strides', label: 'Easy + Strides', dist: 5, pace: 5.75, desc: 'Easy 5km, then 4× 20-second strides (fast but relaxed, ~5:00/km feel) with full walk recovery. Wakes up the legs.' },
+    { type: 'long', label: 'Long Run', dist: 8, pace: 5.75, desc: 'Build to 8km. Last 1km slightly quicker (~5:20/km) if feeling good. Durability focus.' }
+  ]},
+  { week: 3, phase: 'Base', focus: 'First taste of sustained 5:00/km.', sessions: [
+    { type: 'easy', label: 'Easy Run', dist: 5, pace: 5.66, desc: 'Easy aerobic, controlled. Recovery between quality days.' },
+    { type: 'tempo', label: 'Tempo Intro', dist: 5, pace: 5.0, desc: '1km easy warmup, 3km @ 5:00/km (controlled, comfortably hard), 1km easy cooldown. This is the pace you are making routine.', benchmark: { dist: 3, pace: 5.0, name: '3km @ 5:00' } },
+    { type: 'long', label: 'Long Run', dist: 8, pace: 5.66, desc: '8km steady. Negative split — second half slightly faster than first. Patience.' }
+  ]},
+  { week: 4, phase: 'Base', focus: 'Consolidate. 5:00/km should feel controlled now.', sessions: [
+    { type: 'easy', label: 'Easy Run', dist: 5, pace: 5.66, desc: 'Easy recovery pace. Legs should feel fresh by end of week.' },
+    { type: 'tempo', label: 'Tempo', dist: 6, pace: 5.0, desc: '1km warmup, 4km @ 5:00/km, 1km cooldown. Goal: 5:00/km feels controlled, not challenging. CHECKPOINT.', benchmark: { dist: 4, pace: 5.0, name: '4km @ 5:00' } },
+    { type: 'long', label: 'Long Run', dist: 9, pace: 5.5, desc: '9km. Build durability. Keep it aerobic but steady.' }
+  ]},
+  // PHASE 2: THRESHOLD (Weeks 5-8)
+  { week: 5, phase: 'Threshold', focus: 'Shift gears. Sustained work at 4:45-4:50/km.', sessions: [
+    { type: 'easy', label: 'Easy Run', dist: 5, pace: 5.5, desc: 'Easy aerobic. Recovery is now critical — quality days are harder.' },
+    { type: 'tempo', label: 'Threshold', dist: 6, pace: 4.83, desc: '1.5km warmup, 3km @ 4:50/km, 1.5km cooldown. Threshold effort — hard but sustainable.', benchmark: { dist: 3, pace: 4.83, name: '3km @ 4:50' } },
+    { type: 'long', label: 'Long Run', dist: 10, pace: 5.5, desc: '10km steady. You have done this distance before — own it now.' }
+  ]},
+  { week: 6, phase: 'Threshold', focus: 'First 4:30/km reps. Short and sharp.', sessions: [
+    { type: 'easy', label: 'Easy Run', dist: 5, pace: 5.5, desc: 'Easy recovery. Keep the engine loose before intervals.' },
+    { type: 'interval', label: 'Intervals 4×1km', dist: 7, reps: 4, repDist: 1, repPace: 4.5, recovery: '90s walk/jog', desc: '1.5km warmup. 4× 1km @ 4:30/km with 90s recovery. 1.5km cooldown. First real taste of race pace.', benchmark: { dist: 1, pace: 4.5, name: '1km @ 4:30 reps' } },
+    { type: 'long', label: 'Long Run', dist: 10, pace: 5.33, desc: '10km. Middle 3km at ~5:00/km (pace surge), rest easy. Teaching the body to shift gears.' }
+  ]},
+  { week: 7, phase: 'Threshold', focus: 'Extend threshold. More volume at pace.', sessions: [
+    { type: 'easy', label: 'Easy Run', dist: 6, pace: 5.5, desc: 'Easy aerobic, slightly longer. Building base under the speed.' },
+    { type: 'tempo', label: 'Threshold', dist: 7, pace: 4.83, desc: '1.5km warmup, 4km @ 4:50/km, 1.5km cooldown. Extending time at threshold.', benchmark: { dist: 4, pace: 4.83, name: '4km @ 4:50' } },
+    { type: 'long', label: 'Long Run', dist: 11, pace: 5.33, desc: '11km. Longest yet. Last 2km at ~5:00/km. Durability + finish strong.' }
+  ]},
+  { week: 8, phase: 'Threshold', focus: 'Consolidate threshold. 4:30 reps get longer.', sessions: [
+    { type: 'easy', label: 'Easy Run', dist: 6, pace: 5.33, desc: 'Easy recovery. You are fitter now — easy pace naturally quicker.' },
+    { type: 'interval', label: 'Intervals 5×1km', dist: 8, reps: 5, repDist: 1, repPace: 4.5, recovery: '75s recovery', desc: '1.5km warmup. 5× 1km @ 4:30/km, 75s recovery. 1.5km cooldown. CHECKPOINT: these should feel repeatable.', benchmark: { dist: 1, pace: 4.5, name: '5×1km @ 4:30' } },
+    { type: 'long', label: 'Long Run', dist: 11, pace: 5.33, desc: '11km steady aerobic. Recovery-focused after hard intervals.' }
+  ]},
+  // PHASE 3: RACE-SPECIFIC (Weeks 9-13)
+  { week: 9, phase: 'Race Prep', focus: 'Continuous race pace begins. 4:30 for real distance.', sessions: [
+    { type: 'easy', label: 'Easy Run', dist: 6, pace: 5.33, desc: 'Easy aerobic. Protect recovery — race-pace work is demanding.' },
+    { type: 'racepace', label: 'Race Pace 3km', dist: 7, pace: 4.5, desc: '2km warmup, 3km continuous @ 4:30/km, 2km cooldown. First continuous race-pace block.', benchmark: { dist: 3, pace: 4.5, name: '3km @ 4:30 continuous' } },
+    { type: 'long', label: 'Long Run', dist: 12, pace: 5.25, desc: '12km — race distance at easy pace. Prove you can cover the distance comfortably.' }
+  ]},
+  { week: 10, phase: 'Race Prep', focus: 'Extend continuous race pace to 4km.', sessions: [
+    { type: 'easy', label: 'Easy Run', dist: 6, pace: 5.25, desc: 'Easy recovery run. Keep legs turning over.' },
+    { type: 'racepace', label: 'Race Pace 4km', dist: 8, pace: 4.5, desc: '2km warmup, 4km @ 4:30/km, 2km cooldown. Building the continuous block.', benchmark: { dist: 4, pace: 4.5, name: '4km @ 4:30 continuous' } },
+    { type: 'long', label: 'Long Run', dist: 12, pace: 5.16, desc: '12km with last 3km at ~4:50/km. Finishing fast on tired legs.' }
+  ]},
+  { week: 11, phase: 'Race Prep', focus: 'Race pace 6km. Over halfway at goal pace.', sessions: [
+    { type: 'easy', label: 'Easy Run', dist: 6, pace: 5.25, desc: 'Easy aerobic recovery. Big quality session coming.' },
+    { type: 'racepace', label: 'Race Pace 6km', dist: 10, pace: 4.5, desc: '2km warmup, 6km @ 4:30/km, 2km cooldown. Halfway to race distance at goal pace.', benchmark: { dist: 6, pace: 4.5, name: '6km @ 4:30 continuous' } },
+    { type: 'long', label: 'Long Run', dist: 13, pace: 5.16, desc: '13km — over race distance. Confidence that 12k is well within range.' }
+  ]},
+  { week: 12, phase: 'Race Prep', focus: 'Race pace 8km. The big one before the confidence run.', sessions: [
+    { type: 'easy', label: 'Easy Run', dist: 6, pace: 5.16, desc: 'Easy recovery. Stay loose, eat well, sleep well this week.' },
+    { type: 'racepace', label: 'Race Pace 8km', dist: 11, pace: 4.5, desc: '1.5km warmup, 8km @ 4:30/km, 1.5km cooldown. Two-thirds race distance at goal pace.', benchmark: { dist: 8, pace: 4.5, name: '8km @ 4:30 continuous' } },
+    { type: 'long', label: 'Long Run', dist: 12, pace: 5.16, desc: '12km easy-steady. Recovery focus before the confidence run week.' }
+  ]},
+  { week: 13, phase: 'Race Prep', focus: 'THE CONFIDENCE RUN. Prove the goal.', sessions: [
+    { type: 'easy', label: 'Easy Run', dist: 5, pace: 5.16, desc: 'Easy and short. Fully fresh for the confidence run.' },
+    { type: 'confidence', label: '🎯 CONFIDENCE RUN: 10km @ 4:30', dist: 10, pace: 4.5, desc: 'OUTDOOR. 10km continuous @ 4:30/km. If you nail this, race day is a formality. This is the run that turns possible into done.', outside: true, benchmark: { dist: 10, pace: 4.5, name: '10km @ 4:30 — CONFIDENCE RUN' } },
+    { type: 'easy', label: 'Easy Recovery', dist: 5, pace: 5.25, desc: 'Very easy shakeout after the confidence run. Celebrate — you have basically done it.' }
+  ]},
+  // PHASE 4: TAPER (Weeks 14-15)
+  { week: 14, phase: 'Taper', focus: 'Reduce volume, keep intensity. Sharpen.', sessions: [
+    { type: 'easy', label: 'Easy Run', dist: 5, pace: 5.25, desc: 'Easy aerobic. Volume drops now — let the fitness consolidate.' },
+    { type: 'racepace', label: 'Race Pace Sharpener', dist: 6, pace: 4.5, desc: '1.5km warmup, 3km @ 4:30/km, 1.5km cooldown. Short, sharp, stay fresh. Do not overdo it.', benchmark: { dist: 3, pace: 4.5, name: '3km @ 4:30 sharpener' } },
+    { type: 'easy', label: 'Easy Run', dist: 5, pace: 5.33, desc: 'Easy and relaxed. Legs should feel springy. Trust the taper.' }
+  ]},
+  { week: 15, phase: 'Race Week', focus: 'Freshen up. Race day Sep 12.', sessions: [
+    { type: 'easy', label: 'Easy Shakeout', dist: 4, pace: 5.33, desc: 'Easy 4km. Loose and relaxed. Nothing hard.' },
+    { type: 'primer', label: 'Race Primer', dist: 4, pace: 5.0, desc: '2km easy, then 3× 1min @ 4:30/km feel with full recovery. Wakes up race-pace legs without fatigue.' },
+    { type: 'race', label: '🏁 RACE DAY: 12km @ 4:30', dist: 12, pace: 4.5, desc: 'OUTDOOR. This is it. 12km @ 4:30/km = 54:00. You have run 10km at this pace already — race adrenaline carries the rest. Trust your training.', outside: true }
+  ]}
+];
+
+function getProgramWeek() {
+  const now = new Date();
+  if (now < PROGRAM_START) return 0;
+  const diffDays = Math.floor((now - PROGRAM_START) / (1000*60*60*24));
+  return Math.min(Math.floor(diffDays / 7) + 1, 15);
+}
+
+function getDaysToRace() {
+  const now = new Date();
+  return Math.ceil((RACE_DATE - now) / (1000*60*60*24));
+}
+
+function getCurrentPhase() {
+  const w = getProgramWeek();
+  if (w === 0) return 'Pre-Program';
+  return RUN_PROGRAM[w-1] ? RUN_PROGRAM[w-1].phase : 'Complete';
+}
+
+function getReadiness() {
+  const benchmarks = [
+    { name: '5:00/km for 4km', dist: 4, pace: 5.0, week: 4 },
+    { name: '4:50/km for 4km', dist: 4, pace: 4.83, week: 7 },
+    { name: '4:30/km × 1km reps', dist: 1, pace: 4.5, week: 6 },
+    { name: '4:30/km for 3km continuous', dist: 3, pace: 4.5, week: 9 },
+    { name: '4:30/km for 6km continuous', dist: 6, pace: 4.5, week: 11 },
+    { name: '4:30/km for 8km continuous', dist: 8, pace: 4.5, week: 12 },
+    { name: '4:30/km for 10km (confidence run)', dist: 10, pace: 4.5, week: 13 }
+  ];
+  benchmarks.forEach(b => {
+    b.hit = runningLogs.some(run => {
+      if (!run.distance || !run.time) return false;
+      const runPace = run.time / run.distance;
+      return run.distance >= b.dist - 0.05 && runPace <= b.pace + 0.04;
+    });
+  });
+  const hitCount = benchmarks.filter(b => b.hit).length;
+  return { benchmarks, hitCount, total: benchmarks.length };
+}
+
+function getReadinessStatus() {
+  const w = getProgramWeek();
+  const { benchmarks, hitCount, total } = getReadiness();
+  const due = benchmarks.filter(b => b.week <= w);
+  const dueHit = due.filter(b => b.hit).length;
+  const behind = due.length - dueHit;
+  let status, color, msg;
+  if (w === 0) {
+    status = 'Not started'; color = '#888';
+    msg = 'Program starts June 1. Log your runs and the readiness gate will track whether 4:30/km is locked in.';
+  } else if (behind === 0) {
+    status = 'ON TRACK'; color = '#4ade80';
+    msg = `You have hit every pace benchmark due so far (${dueHit}/${due.length}). 4:30/km for 12k is on track. Keep training consistently.`;
+  } else if (behind === 1) {
+    status = 'SLIGHTLY BEHIND'; color = '#fbbf24';
+    const missed = due.find(b => !b.hit);
+    msg = `You are behind on one benchmark: "${missed.name}". Repeat that session before moving on. Do not progress until you have hit it — the plan only works if each step is proven.`;
+  } else {
+    status = 'BEHIND — ADJUST'; color = '#ff6b35';
+    msg = `You are behind on ${behind} benchmarks. Be honest: either training has been inconsistent, or the timeline needs adjusting. Better to find out now than on race day. Consider holding the current phase an extra week, or revising the goal to a pace you can prove.`;
+  }
+  return { status, color, msg, hitCount, total, behind };
+}
+
+function isSessionDone(s, sessionIndex) {
+  // Match by order within the week — first run this week = session 0, second = session 1, etc.
+  // This way it works regardless of which day you actually ran.
+  const now = new Date();
+  const weekStart = new Date(now);
+  weekStart.setHours(0,0,0,0);
+  weekStart.setDate(now.getDate() - now.getDay()); // Sunday start
+  
+  // Get all qualifying runs this week, sorted oldest first
+  const thisWeekRuns = runningLogs
+    .filter(r => {
+      const d = new Date(r.date);
+      return d >= weekStart && r.distance >= s.dist * 0.8;
+    })
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
+  
+  // Session i is done if there's an i-th run this week
+  return thisWeekRuns.length > sessionIndex;
+}
+
+function renderSessionCard(s, isToday, isDone) {
+  const speed = paceToSpeed(s.pace);
+  const estMin = s.dist * s.pace;
+  const tooLongForTreadmill = estMin > 70 && !s.outside;
+  const typeColors = {
+    easy: '#60a5fa', 'easy+strides': '#60a5fa', tempo: '#a78bfa', interval: '#fb923c',
+    racepace: '#ff6b35', long: '#34d399', confidence: '#fbbf24', race: '#f87171', primer: '#a78bfa'
+  };
+  const tc = isDone ? '#4ade80' : (typeColors[s.type] || '#888');
+  const repInfo = s.reps ? `${s.reps}× ${s.repDist >= 1 ? s.repDist + 'km' : (s.repDist*1000) + 'm'} @ ${fmtPace(s.repPace)}/km (${paceToSpeed(s.repPace).toFixed(1)} km/h), ${s.recovery}` : null;
+  const borderColor = isDone ? '#4ade80' : (isToday ? '#ff6b35' : '#222');
+  const bgColor = isDone ? '#0d1a0d' : (isToday ? '#1a1410' : '#0d0d0d');
+
+  return `
+    <div style="background:${bgColor}; border:1px solid ${borderColor}; border-radius:8px; padding:12px; margin-bottom:8px;">
+      <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:6px;">
+        <div style="font-size:13px; font-weight:700; color:${tc};">${isDone ? '✓ ' : isToday ? '▶ ' : ''}${s.label}</div>
+        <div style="font-size:11px; color:${isDone ? '#4ade80' : '#888'}; text-align:right;">
+          ${isDone ? 'Done today' : `${s.dist}km${s.type !== 'interval' ? ` · ~${Math.round(estMin)}min` : ''}`}
+        </div>
+      </div>
+      ${isDone ? '' : `
+      ${!s.reps ? `
+        <div style="display:flex; gap:14px; margin-bottom:8px;">
+          <div><span style="font-size:10px; color:#666;">PACE</span><br><span style="font-size:14px; font-weight:700; color:#fff;">${fmtPace(s.pace)}<span style="font-size:10px; color:#888;">/km</span></span></div>
+          <div><span style="font-size:10px; color:#666;">TREADMILL SPEED</span><br><span style="font-size:14px; font-weight:700; color:#ff6b35;">${speed.toFixed(1)}<span style="font-size:10px; color:#888;"> km/h</span></span></div>
+        </div>
+      ` : `
+        <div style="font-size:12px; color:#fff; background:#1a1a1a; border-radius:6px; padding:8px; margin-bottom:8px;">${repInfo}</div>
+      `}
+      <div style="font-size:12px; color:#aaa; line-height:1.5;">${s.desc}</div>
+      ${tooLongForTreadmill ? `<div style="margin-top:8px; font-size:11px; color:#f87171; background:#1f1212; border:1px solid #f87171; border-radius:6px; padding:8px;">⚠️ This session is over 70 minutes — <strong>you must run this outside.</strong></div>` : ''}
+      ${s.outside ? `<div style="margin-top:8px; font-size:11px; color:#fbbf24; background:#1f1c12; border:1px solid #fbbf24; border-radius:6px; padding:8px;">🌳 <strong>Run this outside.</strong> ${s.type === 'race' ? 'Race day is outdoors — no surprises.' : 'Time to practice real-world pacing, wind, and terrain.'}</div>` : ''}
+      ${s.benchmark ? `<div style="margin-top:8px; font-size:11px; color:#4ade80;">✓ Benchmark: hitting this logs progress toward your goal readiness.</div>` : ''}
+      `}
+    </div>
+  `;
+}
+
+function renderRunPlan() {
+  const w = getProgramWeek();
+  const daysToRace = getDaysToRace();
+  const totalDays = Math.ceil((RACE_DATE - PROGRAM_START) / (1000*60*60*24));
+  const elapsedDays = totalDays - daysToRace;
+  const timePct = Math.max(0, Math.min(100, (elapsedDays / totalDays) * 100));
+  const readiness = getReadinessStatus();
+  const readyPct = Math.round((readiness.hitCount / readiness.total) * 100);
+  const adj = getAdjustmentRecommendation();
+  const effectiveProgram = getEffectiveProgram();
+  const phase = getCurrentPhase();
+  const wk = w >= 1 && w <= 15 ? effectiveProgram[w-1] : null;
+
+  const dayIdx = new Date().getDay();
+  let sessionIdx = 0;
+  if (dayIdx <= 1) sessionIdx = 0;
+  else if (dayIdx <= 5) sessionIdx = 1;
+  else sessionIdx = 2;
+
+  const phaseColors = { 'Base': '#60a5fa', 'Threshold': '#a78bfa', 'Race Prep': '#fb923c', 'Taper': '#4ade80', 'Race Week': '#f87171', 'Pre-Program': '#888', 'Complete': '#4ade80' };
+  const pc = phaseColors[phase] || '#888';
+
+  return `
+    <div style="margin-bottom: 16px;">
+      <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom: 4px;">
+        <h2 style="font-size: 18px;">🎯 Goal: 12km @ 4:30/km</h2>
+        <span style="font-size: 12px; color:#888;">54:00 target</span>
+      </div>
+      <div style="font-size: 12px; color:#888; margin-bottom: 14px;">Race day: Sep 12, 2026 · <span style="color:#ff6b35; font-weight:600;">${daysToRace > 0 ? daysToRace + ' days to go' : 'RACE WEEK'}</span></div>
+      
+      ${(() => {
+        const pred = getPredictedRaceTime();
+        if (pred) {
+          return `<div style="background:#1a2a1a; border:1px solid #4ade80; border-radius:8px; padding:10px; margin-bottom:14px; font-size:12px;">📊 <strong>Predicted finish:</strong> <span style="color:#4ade80; font-weight:600; font-size:14px;">${pred.display}</span> <span style="color:#666; font-size:10px;">(Riegel · best of ${pred.runsUsed} runs · from ${pred.basedOn})</span></div>`;
+        }
+        return '';
+      })()}
+
+      ${(() => {
+        // PHASE ROADMAP — the structural journey (distinct from the % timeline + benchmark count bars below)
+        const phases = [
+          { name: 'Base', weeks: '1–4', purpose: 'Build the engine', color: '#60a5fa' },
+          { name: 'Threshold', weeks: '5–8', purpose: 'Sharpen the pace', color: '#a78bfa' },
+          { name: 'Race Prep', weeks: '9–13', purpose: 'Lock in 4:30', color: '#fb923c' },
+          { name: 'Taper', weeks: '14–15', purpose: 'Rest & race', color: '#4ade80' }
+        ];
+        const currentPhase = getCurrentPhase();
+        return `
+          <div style="margin-bottom: 16px;">
+            <div style="font-size:11px; color:#666; margin-bottom:8px; text-transform:uppercase; letter-spacing:.5px;">Training phases</div>
+            <div style="display:flex; gap:4px;">
+              ${phases.map(p => {
+                const active = p.name === currentPhase;
+                return `
+                  <div style="flex:1; background:${active ? p.color + '22' : '#141414'}; border:1px solid ${active ? p.color : '#222'}; border-radius:8px; padding:8px 6px; text-align:center;">
+                    <div style="font-size:11px; font-weight:700; color:${active ? p.color : '#888'};">${p.name}</div>
+                    <div style="font-size:9px; color:#666; margin:2px 0;">wk ${p.weeks}</div>
+                    <div style="font-size:9px; color:${active ? '#ccc' : '#555'}; line-height:1.2;">${p.purpose}</div>
+                    ${active ? `<div style="font-size:8px; color:${p.color}; margin-top:3px; font-weight:600;">● YOU ARE HERE</div>` : ''}
+                  </div>`;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      })()}
+
+      <div style="margin-bottom: 14px;">
+        <div style="display:flex; justify-content:space-between; font-size:11px; color:#888; margin-bottom:4px;">
+          <span>Timeline</span><span>${Math.round(timePct)}% to race day</span>
+        </div>
+        <div style="background:#0a0a0a; border-radius:6px; height:10px; overflow:hidden; border:1px solid #3a3010;">
+          <div style="height:100%; width:${timePct}%; background:linear-gradient(90deg,#b8860b,#ffd700,#fbbf24); transition:width .3s; box-shadow: 0 0 8px rgba(255,215,0,0.4);"></div>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <div style="display:flex; justify-content:space-between; font-size:11px; color:#888; margin-bottom:4px;">
+          <span>Goal readiness (pace benchmarks hit)</span><span style="color:${readiness.color}; font-weight:600;">${readiness.hitCount}/${readiness.total}</span>
+        </div>
+        <div style="background:#0a0a0a; border-radius:6px; height:10px; overflow:hidden; border:1px solid #3a3010;">
+          <div style="height:100%; width:${readyPct}%; background:linear-gradient(90deg,#b8860b,#ffd700,#fbbf24); transition:width .3s; box-shadow: 0 0 8px rgba(255,215,0,0.4);"></div>
+        </div>
+      </div>
+
+      <div style="background:#141414; border:1px solid ${readiness.color}; border-left:4px solid ${readiness.color}; border-radius:8px; padding:12px; margin-bottom:16px;">
+        <div style="font-size:13px; font-weight:700; color:${readiness.color}; margin-bottom:4px;">${readiness.status}</div>
+        <div style="font-size:12px; color:#ccc; line-height:1.5;">${readiness.msg}</div>
+      </div>
+
+      ${adj ? `
+        <div style="background:#141414; border:1px solid ${adj.color}; border-left:4px solid ${adj.color}; border-radius:8px; padding:12px; margin-bottom:16px;">
+          <div style="font-size:13px; font-weight:700; color:${adj.color}; margin-bottom:4px;">⚡ Dynamic Adjustment: ${adj.action}</div>
+          <div style="font-size:12px; color:#ccc; line-height:1.5;">${adj.msg}</div>
+        </div>
+      ` : ''}
+
+      ${wk ? `
+        <div style="background:#141414; border:1px solid #222; border-radius:8px; padding:14px; margin-bottom:14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <span style="font-size:11px; font-weight:700; color:${pc}; text-transform:uppercase; letter-spacing:.5px;">Week ${w} · ${phase}</span>
+          </div>
+          <div style="font-size:13px; color:#ccc; margin-bottom:14px; line-height:1.5;">${wk.focus}</div>
+          <div style="font-size:11px; color:#666; margin-bottom:8px; text-transform:uppercase; letter-spacing:.5px;">This week's 3 sessions</div>
+          ${wk.sessions.map((s, i) => renderSessionCard(s, i === sessionIdx, isSessionDone(s, i))).join('')}
+        </div>
+      ` : w === 0 ? `
+        <div style="background:#141414; border:1px solid #222; border-radius:8px; padding:14px; text-align:center; color:#888; font-size:13px;">
+          Program begins June 1, 2026. Until then, keep logging runs to establish your baseline.
+        </div>
+      ` : `
+        <div style="background:#141414; border:1px solid #4ade80; border-radius:8px; padding:14px; text-align:center; color:#4ade80; font-size:14px; font-weight:600;">
+          🏁 Program complete. Go get that 12k.
+        </div>
+      `}
+      
+      ${(() => {
+        // BENCHMARK CHECKLIST — the 7 readiness gates
+        const { benchmarks } = getReadiness();
+        return `
+          <div style="background:#141414; border:1px solid #222; border-radius:8px; padding:14px;">
+            <div style="font-size:11px; color:#666; margin-bottom:10px; text-transform:uppercase; letter-spacing:.5px;">Readiness gates · ${benchmarks.filter(b=>b.hit).length}/${benchmarks.length} hit</div>
+            ${benchmarks.map((b, i) => `
+              <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; ${i < benchmarks.length-1 ? 'border-bottom:1px solid #1f1f1f;' : ''}">
+                <span style="font-size:12px; color:${b.hit ? '#4ade80' : '#aaa'};">${b.hit ? '✓' : '○'} ${b.name}</span>
+                <span style="font-size:10px; color:#666;">wk ${b.week}</span>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      })()}
+    </div>
+  `;
+}
+
+let runningSubTab = 'plan';
+
+// ===== DYNAMIC ADJUSTMENT SYSTEM =====
+// Tracks actual performance and adjusts phases based on benchmark achievement
+function getPhasePerformance(phaseNum) {
+  // phaseNum: 1=Base, 2=Threshold, 3=RacePrep, 4=Taper
+  const phaseWeeks = { 1: [1,4], 2: [5,8], 3: [9,13], 4: [14,15] };
+  const [startWeek, endWeek] = phaseWeeks[phaseNum];
+  const { benchmarks, hitCount } = getReadiness();
+  
+  // Benchmarks relevant to this phase
+  const phaseBenchmarks = benchmarks.filter(b => b.week >= startWeek && b.week <= endWeek);
+  const phaseHits = phaseBenchmarks.filter(b => b.hit).length;
+  const phaseTotal = phaseBenchmarks.length;
+  const hitRatio = phaseTotal > 0 ? phaseHits / phaseTotal : 0;
+  
+  // Score: 0-1 scale
+  // 1.0 = hit all benchmarks for phase
+  // 0.5 = hit half
+  // 0.0 = hit none
+  return { hitCount: phaseHits, total: phaseTotal, ratio: hitRatio, phaseBenchmarks };
+}
+
+function getAdjustmentRecommendation() {
+  const w = getProgramWeek();
+  if (w === 0) return null; // program hasn't started
+  
+  const { benchmarks, hitCount, total } = getReadiness();
+  
+  // Current phase (1-4)
+  const phaseNum = w <= 4 ? 1 : w <= 8 ? 2 : w <= 13 ? 3 : 4;
+  const perf = getPhasePerformance(phaseNum);
+  
+  // Expected benchmarks hit by now (all benchmarks in completed weeks + current week's due)
+  const currentPhaseWeeks = { 1: [1,4], 2: [5,8], 3: [9,13], 4: [14,15] };
+  const [phaseStart, phaseEnd] = currentPhaseWeeks[phaseNum];
+  const weeksInPhase = w - phaseStart + 1;
+  const expectedHits = Math.ceil((weeksInPhase / (phaseEnd - phaseStart + 1)) * perf.total);
+  const actualHits = perf.hitCount;
+  const gap = expectedHits - actualHits;
+  
+  let action, color, msg;
+  
+  if (gap <= -1) {
+    // Ahead: you've hit more benchmarks than expected
+    action = 'ACCELERATE';
+    color = '#4ade80';
+    msg = `You're ahead of schedule — hitting benchmarks early. Next phase will push intensity slightly: longer rep durations or faster sustained paces. Stay consistent.`;
+  } else if (gap === 0) {
+    // On track
+    action = 'ON TRACK';
+    color = '#60a5fa';
+    msg = `You're hitting benchmarks as planned. Stick with the current phase — consistency is what locks in race day.`;
+  } else if (gap === 1) {
+    // Slightly behind
+    action = 'HOLD';
+    color = '#fbbf24';
+    const missedBench = perf.phaseBenchmarks.find(b => !b.hit);
+    msg = `You're one benchmark behind this phase. Repeat the session for "${missedBench.name}" before moving forward — each step must be proven.`;
+  } else {
+    // Behind by >1
+    action = 'REPEAT PHASE';
+    color = '#ff6b35';
+    msg = `You're behind by ${gap} benchmarks. Hold this phase for another week and nail the missing sessions. Better to over-prepare than under-prepare before race day.`;
+  }
+  
+  return { action, color, msg, phaseNum, gap, expectedHits, actualHits };
+}
+
+function getEffectiveProgram() {
+  // Returns the program with dynamic adjustments applied
+  // For now: if behind, extend current phase; if ahead, keep original (no compression to avoid burnout)
+  const w = getProgramWeek();
+  const adj = getAdjustmentRecommendation();
+  
+  if (!adj) return RUN_PROGRAM; // pre-program or no adjustment needed
+  
+  // If REPEAT PHASE, shift all future weeks forward by 1
+  if (adj.action === 'REPEAT PHASE') {
+    const shifted = RUN_PROGRAM.map((p, i) => ({
+      ...p,
+      week: p.week + (w >= p.week ? 1 : 0) // shift weeks at/past current
+    }));
+    return shifted;
+  }
+  
+  // Otherwise return original (ON TRACK, HOLD, or ACCELERATE all follow planned path)
+  return RUN_PROGRAM;
+}
+
+function renderRunning() {
+  return `
+    <div style="display:flex; gap:6px; margin-bottom:16px;">
+      <button onclick="runningSubTab='plan'; render();" style="flex:1; padding:8px; background:${runningSubTab === 'plan' ? '#ff6b35' : '#1a1a1a'}; color:#fff; border:1px solid ${runningSubTab === 'plan' ? '#ff6b35' : '#2a2a2a'}; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer;">📋 Plan</button>
+      <button onclick="runningSubTab='log'; render();" style="flex:1; padding:8px; background:${runningSubTab === 'log' ? '#ff6b35' : '#1a1a1a'}; color:#fff; border:1px solid ${runningSubTab === 'log' ? '#ff6b35' : '#2a2a2a'}; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer;">⏱ Log Run</button>
+    </div>
+    ${runningSubTab === 'plan' ? renderRunPlan() : renderRunLog()}
+  `;
+}
+
+function renderRunLog() {
+  const today = localDateStr(new Date());
+  const todaysRuns = runningLogs.filter(r => localDateStr(r.date) === today);
+  const isInterval = currentRunType === 'interval' || currentRunType === 'interval-treadmill';
+  const isTreadmill = currentRunType === 'treadmill' || currentRunType === 'interval-treadmill';
+
+  const intervalsHTML = isInterval ? currentIntervals.map((interval, idx) => `
+    <div style="background: #0d0d0d; border: 1px solid #2a2a2a; border-radius: 6px; padding: 8px; display: grid; grid-template-columns: 1fr 1fr auto; gap: 6px; align-items: end;">
+      <div>
+        <label style="font-size: 11px; color: #666;">Speed (km/h)</label>
+        <input type="number" value="${interval.speed}" step="0.5" oninput="updateInterval(${idx}, 'speed', this.value); updateIntervalTotals();" style="width: 100%; padding: 6px; background: #161616; border: 1px solid #2a2a2a; color: #fff; border-radius: 4px; font-size: 12px;">
+      </div>
+      <div>
+        <label style="font-size: 11px; color: #666;">Time (min)</label>
+        <input type="number" value="${interval.time}" step="1" oninput="updateInterval(${idx}, 'time', this.value); updateIntervalTotals();" style="width: 100%; padding: 6px; background: #161616; border: 1px solid #2a2a2a; color: #fff; border-radius: 4px; font-size: 12px;">
+      </div>
+      <button onclick="deleteInterval(${idx}); render();" style="padding: 6px 10px; background: #2a1a1a; color: #ff6b35; border: 1px solid #ff6b35; border-radius: 4px; font-size: 11px; cursor: pointer;">✕</button>
+    </div>
+  `).join('') : '';
+
+  return `
+    <div style="margin-bottom: 16px;">
+      <h2 style="font-size: 18px; margin-bottom: 12px;">Running Log</h2>
+
+      <div style="margin-bottom: 14px;">
+        <label style="font-size: 12px; color: #888;">Type</label>
+        <select id="runType" onchange="currentRunType = this.value; currentIntervals = []; render()" style="width: 100%; padding: 8px; background: #1a1a1a; border: 1px solid #2a2a2a; color: #fff; border-radius: 6px; margin-top: 4px;">
+          <option value="regular" ${currentRunType === 'regular' ? 'selected' : ''}>Regular Run</option>
+          <option value="treadmill" ${currentRunType === 'treadmill' ? 'selected' : ''}>Treadmill</option>
+          <option value="interval" ${currentRunType === 'interval' ? 'selected' : ''}>Interval Run</option>
+          <option value="interval-treadmill" ${currentRunType === 'interval-treadmill' ? 'selected' : ''}>Interval Treadmill</option>
+        </select>
+      </div>
+      
+      ${isInterval ? `
+        <div style="margin-bottom: 16px; background: #161616; border: 1px solid #222; border-radius: 8px; padding: 12px;">
+          <div style="margin-bottom: 12px;">
+            <div style="font-weight: 600; font-size: 13px; margin-bottom: 10px;">Intervals</div>
+            <div id="intervalsContainer" style="display: flex; flex-direction: column; gap: 8px;">
+              ${intervalsHTML}
+            </div>
+            <button onclick="addInterval(); render();" style="width: 100%; padding: 8px; margin-top: 10px; background: #2a2a2a; color: #fff; border: 1px solid #3a3a3a; border-radius: 6px; font-size: 12px; cursor: pointer;">+ Add Interval</button>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+            <div>
+              <label style="font-size: 12px; color: #888;">Total Distance (km)</label>
+              <div id="totalDistance" style="width: 100%; padding: 8px; background: #0d0d0d; border: 1px solid #2a2a2a; color: #ff6b35; border-radius: 6px; margin-top: 4px; font-weight: 600; text-align: center;">0.00</div>
+            </div>
+            <div>
+              <label style="font-size: 12px; color: #888;">Total Time (min)</label>
+              <div id="totalTime" style="width: 100%; padding: 8px; background: #0d0d0d; border: 1px solid #2a2a2a; color: #ff6b35; border-radius: 6px; margin-top: 4px; font-weight: 600; text-align: center;">0</div>
+            </div>
+          </div>
+          
+          <button onclick="logIntervalRun()" style="width: 100%; padding: 10px; background: #ff6b35; color: #fff; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 14px;">Log Interval Run</button>
+        </div>
+      ` : `
+        ${isTreadmill ? `
+          <div style="margin-bottom: 14px; background: #161616; border: 1px solid #222; border-radius: 8px; padding: 10px;">
+            <div style="font-size: 12px; color: #888; margin-bottom: 8px; font-weight: 500;">Input Method</div>
+            <div style="display: flex; gap: 6px; margin-bottom: 12px;">
+              <button onclick="treadmillMode = 'speed'; render();" style="flex: 1; padding: 6px; background: ${treadmillMode === 'speed' ? '#ff6b35' : '#2a2a2a'}; color: #fff; border: none; border-radius: 4px; font-size: 12px; cursor: pointer;">Speed + Time</button>
+              <button onclick="treadmillMode = 'distance'; render();" style="flex: 1; padding: 6px; background: ${treadmillMode === 'distance' ? '#ff6b35' : '#2a2a2a'}; color: #fff; border: none; border-radius: 4px; font-size: 12px; cursor: pointer;">Distance + Time</button>
+            </div>
+          </div>
+        ` : ''}
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px;">
+          <div>
+            <label style="font-size: 12px; color: #888;">${isTreadmill && treadmillMode === 'distance' ? 'Distance (km)' : isTreadmill && treadmillMode === 'speed' ? 'Speed (km/h)' : 'Distance (km)'}</label>
+            <input type="number" id="runDistance" placeholder="${isTreadmill && treadmillMode === 'distance' ? '5.0' : isTreadmill && treadmillMode === 'speed' ? '10' : '5.0'}" step="${isTreadmill && treadmillMode === 'distance' ? '0.1' : isTreadmill && treadmillMode === 'speed' ? '0.5' : '0.1'}" oninput="updatePace()" style="width: 100%; padding: 8px; background: #1a1a1a; border: 1px solid #2a2a2a; color: #fff; border-radius: 6px; margin-top: 4px;">
+          </div>
+          <div>
+            <label style="font-size: 12px; color: #888;">Time (min)</label>
+            <input type="number" id="runTime" placeholder="30" step="1" oninput="updatePace()" style="width: 100%; padding: 8px; background: #1a1a1a; border: 1px solid #2a2a2a; color: #fff; border-radius: 6px; margin-top: 4px;">
+          </div>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+          <div>
+            <label style="font-size: 12px; color: #888;">${isTreadmill && treadmillMode === 'distance' ? 'Pace (min/km)' : isTreadmill && treadmillMode === 'speed' ? 'Distance (km)' : 'Pace (min/km)'}</label>
+            <div id="paceMinPerKm" style="width: 100%; padding: 8px; background: #1a1a1a; border: 1px solid #2a2a2a; color: #ff6b35; border-radius: 6px; margin-top: 4px; font-weight: 600; text-align: center;">--${isTreadmill && treadmillMode === 'distance' ? ':--' : isTreadmill && treadmillMode === 'speed' ? '' : ':--'}</div>
+          </div>
+          <div>
+            <label style="font-size: 12px; color: #888;">Speed (km/h)</label>
+            <div id="paceKmPerH" style="width: 100%; padding: 8px; background: #1a1a1a; border: 1px solid #2a2a2a; color: #ff6b35; border-radius: 6px; margin-top: 4px; font-weight: 600; text-align: center;">--</div>
+          </div>
+        </div>
+      `}
+      
+      <div style="margin-bottom: 12px;">
+        <label style="font-size: 12px; color: #888;">Notes (optional)</label>
+        <input type="text" id="runNotes" placeholder="How did you feel?" style="width: 100%; padding: 8px; background: #1a1a1a; border: 1px solid #2a2a2a; color: #fff; border-radius: 6px; margin-top: 4px;">
+      </div>
+      
+      ${!isInterval ? `<button onclick="logRun()" style="width: 100%; padding: 12px; background: #ff6b35; color: #fff; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 14px;">Log Run</button>` : ''}
+    </div>
+    
+    <div style="margin-bottom: 16px;">
+      <h3 style="font-size: 14px; color: #888; margin-bottom: 10px;">Today's Runs (${todaysRuns.length})</h3>
+      ${todaysRuns.length === 0 ? '<p style="color: #666; font-size: 13px;">No runs logged today</p>' : ''}
+      ${todaysRuns.map((run, idx) => {
+        const paceMinKm = (run.time / run.distance);
+        const paceMin = Math.floor(paceMinKm);
+        const paceSec = Math.round((paceMinKm - paceMin) * 60);
+        const paceStr = `${paceMin}:${paceSec.toString().padStart(2, '0')}`;
+        const speed = (run.distance / run.time * 60).toFixed(1);
+        return `
+          <div style="background: #161616; border: 1px solid #222; border-radius: 8px; padding: 10px; margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 6px;">
+              <div>
+                <div style="font-weight: 600; font-size: 13px; color: #fff;">${run.type === 'regular' ? '🏃 Regular Run' : run.type === 'treadmill' ? '🏃 Treadmill' : run.type === 'interval' ? '⚡ Interval Run' : '⚡ Interval Treadmill'}</div>
+                <div style="font-size: 12px; color: #888;">${run.distance.toFixed(2)}km in ${run.time}min · <span style="color: #ff6b35;">${paceStr}/km</span> · ${speed} km/h</div>
+              </div>
+              <button onclick="deleteRun(${idx})" style="background: #2a1a1a; color: #ff6b35; border: 1px solid #ff6b35; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer;">Delete</button>
+            </div>
+            ${run.notes ? `<div style="font-size: 12px; color: #999; margin-top: 6px;">📝 ${run.notes}</div>` : ''}
+            ${run.intervals ? `<div style="font-size: 11px; color: #666; margin-top: 6px;">⚡ ${run.intervals.length} intervals</div>` : ''}
+          </div>
+        `;
+      }).join('')}
+    </div>
+    
+    <div>
+      <h3 style="font-size: 14px; color: #888; margin-bottom: 10px;">Run History</h3>
+      ${runningLogs.slice().reverse().slice(0, 10).map((run) => {
+        const date = new Date(run.date).toLocaleDateString('en-US', {month: 'short', day: 'numeric'});
+        const paceMinKm = (run.time / run.distance);
+        const paceMin = Math.floor(paceMinKm);
+        const paceSec = Math.round((paceMinKm - paceMin) * 60);
+        const paceStr = `${paceMin}:${paceSec.toString().padStart(2, '0')}`;
+        const speed = (run.distance / run.time * 60).toFixed(1);
+        return `
+          <div style="background: #161616; border: 1px solid #222; border-radius: 8px; padding: 10px; margin-bottom: 6px; font-size: 13px;">
+            <div style="display: flex; justify-content: space-between;">
+              <div>
+                <span style="color: #fff; font-weight: 500;">${run.distance.toFixed(2)}km</span>
+                <span style="color: #888; margin-left: 8px;">${run.time}min</span>
+                <span style="color: #666; margin-left: 8px; font-size: 11px;">${date}</span>
+              </div>
+              <div style="text-align: right;">
+                <div style="color: #ff6b35; font-weight: 500; font-size: 12px;">${paceStr}/km</div>
+                <div style="color: #888; font-size: 11px;">${speed} km/h</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+function updatePace() {
+  const isTreadmill = currentRunType === 'treadmill' || currentRunType === 'interval-treadmill';
+  const input1 = parseFloat(document.getElementById('runDistance').value);
+  const time = parseInt(document.getElementById('runTime').value);
+  
+  const paceMinKmEl = document.getElementById('paceMinPerKm');
+  const paceKmPerHEl = document.getElementById('paceKmPerH');
+  
+  if (!input1 || !time || input1 <= 0 || time <= 0) {
+    paceMinKmEl.textContent = isTreadmill && treadmillMode === 'distance' ? '--:--' : isTreadmill ? '--' : '--:--';
+    paceKmPerHEl.textContent = '--';
+    return;
+  }
+  
+  if (isTreadmill && treadmillMode === 'speed') {
+    // For treadmill speed mode: input1 is speed (km/h), calculate distance
+    const speed = input1;
+    const distance = (speed * time) / 60;
+    paceMinKmEl.textContent = distance.toFixed(2);
+    paceKmPerHEl.textContent = speed.toFixed(1);
+  } else {
+    // For regular/distance mode: input1 is distance, calculate pace
+    const distance = input1;
+    const paceMinKm = (time / distance);
+    const paceMin = Math.floor(paceMinKm);
+    const paceSec = Math.round((paceMinKm - paceMin) * 60);
+    const paceStr = `${paceMin}:${paceSec.toString().padStart(2, '0')}`;
+    const speed = (distance / time * 60).toFixed(1);
+    
+    paceMinKmEl.textContent = paceStr;
+    paceKmPerHEl.textContent = speed;
+  }
+}
+
+async function logRun() {
+  const type = currentRunType;
+  const isTreadmill = type === 'treadmill' || type === 'interval-treadmill';
+  const input1 = parseFloat(document.getElementById('runDistance').value);
+  const time = parseInt(document.getElementById('runTime').value);
+  const notes = document.getElementById('runNotes').value;
+  
+  if (!input1 || !time || input1 <= 0 || time <= 0) {
+    alert('Please enter valid values');
+    return;
+  }
+  
+  let distance;
+  if (isTreadmill && treadmillMode === 'speed') {
+    // input1 is speed (km/h)
+    distance = (input1 * time) / 60;
+  } else {
+    // input1 is distance (km)
+    distance = input1;
+  }
+  
+  const pace = time / distance;
+  const run = {
+    date: new Date().toISOString(),
+    type,
+    distance: parseFloat(distance.toFixed(2)),
+    time,
+    pace,
+    notes
+  };
+  
+  runningLogs.push(run);
+  checkBenchmarkHit(run);
+  
+  await save();
+  document.getElementById('runDistance').value = '';
+  document.getElementById('runTime').value = '';
+  document.getElementById('runNotes').value = '';
+  render();
+}
+
+function deleteRun(idx) {
+  const today = localDateStr(new Date());
+  const todaysRuns = runningLogs.filter(r => localDateStr(r.date) === today);
+  const run = todaysRuns[idx];
+  runningLogs = runningLogs.filter(r => r !== run);
+  save();
+  render();
+}
+
+function addInterval() {
+  currentIntervals.push({ speed: 10, time: 5 });
+  render();
+}
+
+function deleteInterval(idx) {
+  currentIntervals.splice(idx, 1);
+  render();
+}
+
+function updateInterval(idx, field, value) {
+  if (field === 'speed') {
+    currentIntervals[idx].speed = parseFloat(value) || 0;
+  } else if (field === 'time') {
+    currentIntervals[idx].time = parseInt(value) || 0;
+  }
+  updateIntervalTotals();
+}
+
+function updateIntervalTotals() {
+  let totalDist = 0, totalTime = 0;
+  for (const interval of currentIntervals) {
+    totalDist += (interval.speed * interval.time) / 60;
+    totalTime += interval.time;
+  }
+  const distEl = document.getElementById('totalDistance');
+  const timeEl = document.getElementById('totalTime');
+  if (distEl) distEl.textContent = totalDist.toFixed(2);
+  if (timeEl) timeEl.textContent = totalTime;
+}
+
+async function logIntervalRun() {
+  if (currentIntervals.length === 0) {
+    alert('Add at least one interval');
+    return;
+  }
+  
+  let totalDist = 0, totalTime = 0;
+  for (const interval of currentIntervals) {
+    totalDist += (interval.speed * interval.time) / 60;
+    totalTime += interval.time;
+  }
+  
+  const type = currentRunType;
+  const notes = document.getElementById('runNotes').value;
+  const pace = totalTime / totalDist;
+  
+  const run = {
+    date: new Date().toISOString(),
+    type,
+    distance: parseFloat(totalDist.toFixed(2)),
+    time: totalTime,
+    pace,
+    notes,
+    intervals: JSON.parse(JSON.stringify(currentIntervals))
+  };
+  
+  runningLogs.push(run);
+  checkBenchmarkHit(run);
+  
+  await save();
+  currentIntervals = [];
+  document.getElementById('runNotes').value = '';
+  render();
+}
+
+function getPRs() {
+  // Calculate all-time max e1RM for each exercise
+  const prs = {};
+  for (const [exId, logList] of Object.entries(logs)) {
+    let maxE1RM = 0;
+    let prDate = null;
+    for (const entry of logList) {
+      const e1rm = entry.weight * (1 + entry.reps / 30);
+      if (e1rm > maxE1RM) {
+        maxE1RM = e1rm;
+        prDate = entry.date;
+      }
+    }
+    prs[exId] = { e1rm: maxE1RM, date: prDate };
+  }
+  return prs;
+}
+
+function getDeloadSuggestion() {
+  // Detect if 3+ lifts are stalled — requires at least 3 separate SESSIONS with no meaningful e1RM progress
+  const stalledExercises = [];
+  for (const [exId, logList] of Object.entries(logs)) {
+    const sessions = groupByDate(logList);
+    if (sessions.length < 3) continue; // need at least 3 sessions to call it a stall
+    const [s1, s2, s3] = sessions; // most recent first
+    const e1 = avgE1RM(s1.sets);
+    const e2 = avgE1RM(s2.sets);
+    const e3 = avgE1RM(s3.sets);
+    const range = Math.max(e1, e2, e3) - Math.min(e1, e2, e3);
+    if (range / e1 < 0.02) stalledExercises.push(exId); // <2% variation across 3 sessions = stall
+  }
+  return stalledExercises.length >= 3 ? stalledExercises : null;
+}
+
+function getPredictedRaceTime() {
+  // A 12km prediction is only meaningful if based on longer runs (6km+).
+  // A fast 5km tells you top-end pace, not endurance — these are different things.
+  // Riegel formula: T2 = T1 × (D2/D1)^1.06
+  // The closer the basis run is to 12km, the more reliable the prediction.
+  const recentRuns = runningLogs.filter(r => {
+    const daysAgo = (Date.now() - new Date(r.date)) / (1000 * 60 * 60 * 24);
+    const pace = r.time / r.distance;
+    return daysAgo <= 42 && r.distance >= 6 && pace < 7.0 && pace > 3.5;
+  });
+  
+  if (recentRuns.length < 2) return null;
+  
+  // Use the longest recent run — closest to race distance is most reliable
+  let basisRun = recentRuns[0];
+  for (const r of recentRuns) {
+    if (r.distance > basisRun.distance) basisRun = r;
+  }
+  
+  const t1 = basisRun.time;
+  const d1 = basisRun.distance;
+  const d2 = 12;
+  
+  const predicted12kmTime = t1 * Math.pow(d2 / d1, 1.06);
+  const mins = Math.floor(predicted12kmTime);
+  const secs = Math.round((predicted12kmTime - mins) * 60);
+  return { 
+    time: predicted12kmTime, 
+    display: `${mins}:${secs.toString().padStart(2, '0')}`,
+    basedOn: `${d1}km run`,
+    runsUsed: recentRuns.length
+  };
+}
+
+function getWeeklySummary() {
+  const now = new Date();
+  const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay());
+  const weekEnd = new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000);
+  
+  const inThisWeek = (dateStr) => {
+    const d = new Date(localDateStr(dateStr));
+    return d >= weekStart && d < weekEnd;
+  };
+  
+  // Count days either marked complete OR with any logged sets this week
+  const currentDays = currentWeek === 'A' ? WEEK_A : WEEK_B;
+  const completedDays = currentDays.filter(dayKey => {
+    // Marked complete this week
+    if (lastCompleted[dayKey] && inThisWeek(lastCompleted[dayKey])) return true;
+    // OR has actual logged sets this week for this day
+    return SPLIT[dayKey].exercises.some(ex =>
+      (logs[ex.id] || []).some(l =>
+        (!l.day || l.day === dayKey) && inThisWeek(l.date)
+      )
+    );
+  }).length;
+  
+  const thisWeekRuns = runningLogs.filter(r => inThisWeek(r.date));
+  const totalRunDist = thisWeekRuns.reduce((sum, r) => sum + r.distance, 0);
+  
+  return { completedDays, runsCompleted: thisWeekRuns.length, totalRunDist };
+}
+
+function getStreak() {
+  // Count consecutive weeks with 3+ training sessions (lifts + runs combined)
+  // The current (in-progress) week doesn't break the streak even if incomplete
+  const SESSION_THRESHOLD = 3;
+  const MS_WEEK = 7 * 24 * 60 * 60 * 1000;
+  
+  // Build a count of sessions per week (keyed by week-start timestamp)
+  const sessionsByWeek = {};
+  const tally = (dateStr) => {
+    const d = new Date(dateStr);
+    const ws = new Date(d);
+    ws.setHours(0,0,0,0);
+    ws.setDate(d.getDate() - d.getDay()); // Sunday start
+    const key = ws.getTime();
+    sessionsByWeek[key] = (sessionsByWeek[key] || 0) + 1;
+  };
+  Object.values(lastCompleted).forEach(tally);
+  runningLogs.forEach(r => tally(r.date));
+  
+  // Current week start
+  const now = new Date();
+  const curWeekStart = new Date(now);
+  curWeekStart.setHours(0,0,0,0);
+  curWeekStart.setDate(now.getDate() - now.getDay());
+  let cursor = curWeekStart.getTime();
+  
+  let streak = 0;
+  let isCurrentWeek = true;
+  while (true) {
+    const count = sessionsByWeek[cursor] || 0;
+    if (count >= SESSION_THRESHOLD) {
+      streak++;
+    } else if (isCurrentWeek) {
+      // Current week in progress — don't count it, but don't break streak
+    } else {
+      break; // a past week missed the threshold → streak ends
+    }
+    isCurrentWeek = false;
+    cursor -= MS_WEEK;
+    // Safety: stop if we go before any data (5 years back max)
+    if (cursor < now.getTime() - MS_WEEK * 260) break;
+  }
+  
+  return streak;
+}
+
+async function importData() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const text = await file.text();
+    try {
+      const data = JSON.parse(text);
+      
+      if (!confirm('This will overwrite all current data with the backup. Continue?')) return;
+      
+      // Restore data
+      if (data.currentWeek) currentWeek = data.currentWeek;
+      if (data.SPLIT) SPLIT = data.SPLIT;
+      if (data.logs) logs = data.logs;
+      if (data.lastCompleted) lastCompleted = data.lastCompleted;
+      if (data.runningLogs) runningLogs = data.runningLogs;
+      
+      // Persist ALL data types (not just logs/runs)
+      await save();
+      await saveWeek();
+      await saveLastCompleted();
+      await saveOrder();
+      
+      alert('✓ Data restored successfully!');
+      render();
+    } catch (err) {
+      alert('✗ Invalid JSON file: ' + err.message);
+    }
+  };
+  input.click();
+}
+
+function checkBenchmarkHit(run) {
+  // Check if this run hit a running benchmark
+  const { benchmarks } = getReadiness();
+  for (const b of benchmarks) {
+    if (!b.hit && Math.abs(run.distance - b.dist) < 0.3 && Math.abs(run.pace - b.pace) < 0.04) {
+      benchmarkCelebration = { benchmark: b.name, show: true };
+      setTimeout(() => { benchmarkCelebration.show = false; render(); }, 3000);
+      return true;
+    }
+  }
+  return false;
+}
+
+async function exportData() {
+  const data = {
+    timestamp: new Date().toISOString(),
+    currentWeek,
+    SPLIT,
+    logs,
+    lastCompleted,
+    runningLogs
+  };
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `gym-tracker-backup-${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function renderHome() {
+  const summary = getWeeklySummary();
+  const deloadSuggestion = getDeloadSuggestion();
+  const w = getProgramWeek();
+  const daysToRace = getDaysToRace();
+  
+  // Get today's scheduled session.
+  // Mon–Fri = the 5-day split in order. Saturday = makeup day for any session missed this week. Sunday = rest.
+  const days = currentWeek === 'A' ? WEEK_A : WEEK_B;
+  const dayIdx = new Date().getDay();
+  
+  // Determine which days have been completed THIS week
+  const now2 = new Date();
+  const wkStart = new Date(now2);
+  wkStart.setHours(0,0,0,0);
+  wkStart.setDate(now2.getDate() - now2.getDay());
+  const wkStartT = wkStart.getTime();
+  const wkEndT = wkStartT + 7 * 24 * 60 * 60 * 1000;
+  const doneThisWeek = (dayKey) => {
+    const d = lastCompleted[dayKey];
+    if (!d) return false;
+    const t = new Date(d).getTime();
+    return t >= wkStartT && t < wkEndT;
+  };
+  
+  let todayDayKey = null;
+  let isMakeup = false;
+  if (dayIdx >= 1 && dayIdx <= 5) {
+    // Mon=1→days[0] ... Fri=5→days[4]
+    todayDayKey = days[dayIdx - 1];
+  } else if (dayIdx === 6) {
+    // Saturday: surface the first session not yet completed this week
+    todayDayKey = days.find(k => !doneThisWeek(k)) || null;
+    isMakeup = !!todayDayKey;
+  }
+  // Sunday (0): rest, todayDayKey stays null
+  
+  const todayDay = todayDayKey ? SPLIT[todayDayKey] : null;
+  const isCompleted = todayDayKey && lastCompleted[todayDayKey] && doneThisWeek(todayDayKey);
+  
+  const liftPct = (summary.completedDays / 5) * 100;
+  const runPct = (summary.runsCompleted / 3) * 100;
+  const streak = getStreak();
+  
+  return `
+    <div style="margin-bottom: 20px;">
+      <h2 style="font-size: 20px; margin-bottom: 4px;">🏠 Welcome Back</h2>
+      <p style="color: #888; font-size: 12px;">Week ${currentWeek} · ${w > 0 && w <= 15 ? 'Program week ' + w + '/15' : 'Pre-program'} · ${daysToRace > 0 ? daysToRace + ' days to race' : 'RACE WEEK'}</p>
+    </div>
+    
+    <div style="background: #161616; border: 1px solid #222; border-radius: 12px; padding: 24px; margin-bottom: 20px;">
+      <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 20px; color: #fff;">This Week</h3>
+      
+      <div style="margin-bottom: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <span style="font-size: 14px; color: #ddd;">💪 Lifts</span>
+          <span style="font-size: 16px; font-weight: 600; color: #ff6b35;">${summary.completedDays}/5</span>
+        </div>
+        <div style="background: #0a0a0a; border-radius: 6px; height: 12px; overflow: hidden; border: 1px solid #3a3010;">
+          <div style="height: 100%; width: ${liftPct}%; background: linear-gradient(90deg, #b8860b, #ffd700, #fbbf24); transition: width 0.3s; box-shadow: 0 0 8px rgba(255,215,0,0.4);"></div>
+        </div>
+      </div>
+      
+      <div style="margin-bottom: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <span style="font-size: 14px; color: #ddd;">🏃 Runs</span>
+          <span style="font-size: 16px; font-weight: 600; color: #4ade80;">${summary.runsCompleted}/3</span>
+        </div>
+        <div style="background: #0a0a0a; border-radius: 6px; height: 12px; overflow: hidden; border: 1px solid #3a3010;">
+          <div style="height: 100%; width: ${runPct}%; background: linear-gradient(90deg, #b8860b, #ffd700, #fbbf24); transition: width 0.3s; box-shadow: 0 0 8px rgba(255,215,0,0.4);"></div>
+        </div>
+      </div>
+      
+      <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid #2a2a2a;">
+        <span style="font-size: 14px; color: #ddd;">📊 Distance</span>
+        <span style="font-size: 16px; font-weight: 600; color: #60a5fa;">${summary.totalRunDist.toFixed(1)}km</span>
+      </div>
+    </div>
+    
+    <div style="background: linear-gradient(135deg, #2a1a0a, #1a1208); border: 1px solid ${streak > 0 ? '#ff6b35' : '#333'}; border-radius: 12px; padding: 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 14px;">
+      <div style="font-size: 32px; ${streak > 0 ? '' : 'opacity: 0.4;'}">🔥</div>
+      <div>
+        ${streak > 0 ? `
+          <div style="font-size: 22px; font-weight: 700; color: #ff6b35;">${streak} week${streak === 1 ? '' : 's'}</div>
+          <div style="font-size: 11px; color: #d4a574;">training streak · 3+ sessions/week</div>
+        ` : `
+          <div style="font-size: 16px; font-weight: 600; color: #888;">No streak yet</div>
+          <div style="font-size: 11px; color: #666;">Train 3+ times this week to start one</div>
+        `}
+      </div>
+    </div>
+    
+    ${todayDay && !isCompleted ? `
+      <div style="background: #1a2a1a; border: 1px solid #4ade80; border-radius: 10px; padding: 16px; margin-bottom: 16px;">
+        <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 8px; color: #4ade80;">${isMakeup ? '🔄 Makeup Session' : "Today's Session"}</h3>
+        ${isMakeup ? '<div style="font-size: 11px; color: #d4a574; margin-bottom: 8px;">You missed this earlier in the week — Saturday catch-up.</div>' : ''}
+        <div style="font-size: 12px; color: #ddd; margin-bottom: 12px;">${todayDay.name} · ${todayDay.exercises.length} exercises</div>
+        <button class="btn" onclick="activeTab='track'; selectedDay='${todayDayKey}'; render();" style="width: 100%; padding: 12px;">→ Start Workout</button>
+      </div>
+    ` : isCompleted ? `
+      <div style="background: #1a2a1a; border: 1px solid #4ade80; border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+        <div style="color: #4ade80; font-weight: 600; margin-bottom: 8px;">✓ ${todayDay.name} completed today</div>
+        <button class="btn" onclick="undoMarkDayComplete('${todayDayKey}'); render();" style="width: 100%; padding: 8px; background: #2a1a1a; color: #ff6b35; border: 1px solid #ff6b35; font-size: 12px;">↩ Undo Mark Complete</button>
+      </div>
+    ` : dayIdx === 6 ? `
+      <div style="background: #1a2a1a; border: 1px solid #4ade80; border-radius: 10px; padding: 16px; margin-bottom: 16px; text-align: center;">
+        <div style="color: #4ade80; font-weight: 600;">✓ All caught up</div>
+        <div style="font-size: 11px; color: #888; margin-top: 4px;">Every session done this week. Enjoy the rest day.</div>
+      </div>
+    ` : ''}
+    
+    ${deloadSuggestion ? `
+      <div style="background: #2a1a1a; border: 1px solid #fbbf24; border-left: 4px solid #fbbf24; border-radius: 8px; padding: 12px; margin-bottom: 16px;">
+        <div style="color: #fbbf24; font-weight: 600; margin-bottom: 6px;">⚠ Recovery Check</div>
+        <div style="font-size: 12px; color: #ddd; line-height: 1.5;">${deloadSuggestion.length} lifts are stalled. Consider a deload week to recover and rebuild.</div>
+      </div>
+    ` : ''}
+  `;
+}
+
+function render() {
+  // Render benchmark celebration if active
+  if (benchmarkCelebration?.show) {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #ff6b35; color: #000; padding: 24px; border-radius: 12px; font-weight: 700; font-size: 18px; z-index: 998; text-align: center; box-shadow: 0 8px 32px rgba(255, 107, 53, 0.4);';
+    overlay.textContent = `🎯 BENCHMARK HIT!\n${benchmarkCelebration.benchmark}`;
+    document.body.appendChild(overlay);
+    setTimeout(() => overlay.remove(), 3000);
+  }
+  
+  renderWeekIndicator();
+  const c = document.getElementById('content');
+  if (activeTab === 'home') {
+    c.innerHTML = renderHome();
+  } else if (activeTab === 'track') {
+    c.innerHTML = renderDaySelector() + renderSession();
+  } else if (activeTab === 'running') {
+    c.innerHTML = renderRunning();
+  } else {
+    c.innerHTML = renderProgress();
+  }
+}
+
+load();
+</script>
+</body>
+</html>
