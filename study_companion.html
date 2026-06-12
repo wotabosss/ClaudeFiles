@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Protocol Companion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow+Semi+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#121110;--surface:#1B1A18;--raised:#26241F;--line:#36332C;
+    --bone:#F2EFE7;--text:#F2EFE7;--text-2:#A39E93;--text-3:#6E695F;
+    --green:#37C871;--blue:#3D7BFF;--yellow:#F2C12E;--purple:#9A6BFF;--red:#E8443A;--pink:#FF5C8A;
+    --r:18px;
+    --display:'Anton','Barlow Semi Condensed',-apple-system,sans-serif;
+    --body:'Barlow Semi Condensed',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{font-family:var(--body);background:#000;color:var(--text);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased;}
+  .app{max-width:520px;margin:0 auto;min-height:100vh;background:var(--bg);position:relative;display:flex;flex-direction:column;box-shadow:0 0 80px rgba(0,0,0,.5);}
+  .topbar{position:sticky;top:0;z-index:20;background:rgba(18,17,16,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:16px 18px 13px;display:flex;align-items:flex-end;justify-content:space-between;}
+  .eyebrow{font-size:12px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:1px;}
+  h1.app-title{font-family:var(--display);font-size:30px;font-weight:400;letter-spacing:.5px;text-transform:uppercase;line-height:.95;}
+  .pill{font-size:11px;font-weight:600;letter-spacing:1px;color:var(--text-3);border:1px solid var(--line);border-radius:999px;padding:5px 11px;text-transform:uppercase;}
+  .screen{flex:1;overflow-y:auto;padding:18px 16px calc(96px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch;}
+  .screen[hidden]{display:none;}
+  .sec{font-size:12px;font-weight:600;letter-spacing:1.4px;text-transform:uppercase;color:var(--text-3);margin:24px 4px 11px;}
+  .sec:first-child{margin-top:6px;}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);}
+  .pad{padding:17px;}
+  .muted{color:var(--text-2);}
+  .kv{display:flex;justify-content:space-between;gap:14px;padding:11px 0;border-bottom:1px solid var(--line);font-size:14.5px;}
+  .kv:last-child{border-bottom:none;}
+  .kv .k{color:var(--text-2);}
+  .kv .v{text-align:right;font-size:13.5px;color:var(--bone);max-width:62%;}
+  a{color:var(--green);}
+  button{font-family:inherit;cursor:pointer;color:inherit;}
+  .hero{border-radius:var(--r);padding:22px 20px;background:linear-gradient(150deg,#1f2a20,#161513);border:1px solid var(--line);position:relative;overflow:hidden;}
+  .hero .eb{font-size:12px;letter-spacing:1.4px;text-transform:uppercase;color:var(--green);font-weight:600;}
+  .hero h2{font-family:var(--display);font-size:34px;text-transform:uppercase;letter-spacing:.5px;line-height:.95;margin:4px 0 8px;}
+  .hero p{font-size:14.5px;color:var(--text-2);max-width:90%;}
+  .hero .mark{position:absolute;right:-14px;bottom:-24px;opacity:.07;}
+  .stats{display:flex;gap:12px;margin-top:14px;}
+  .stat{flex:1;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px 14px;}
+  .stat .n{font-family:var(--display);font-size:34px;line-height:.9;color:var(--green);}
+  .stat .l{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--text-3);margin-top:6px;}
+  .how{display:flex;gap:13px;padding:13px 0;border-bottom:1px solid var(--line);align-items:center;}
+  .how:last-child{border-bottom:none;}
+  .how .ic{width:38px;height:38px;flex:none;border-radius:11px;display:flex;align-items:center;justify-content:center;background:var(--raised);color:var(--green);}
+  .how .t{font-weight:600;font-size:15.5px;}
+  .how .s{font-size:13px;color:var(--text-2);}
+  .list{display:flex;flex-direction:column;gap:11px;}
+  .item{width:100%;background:var(--surface);border:1px solid var(--line);border-radius:15px;padding:15px;display:flex;align-items:center;gap:13px;text-align:left;transition:transform .12s;}
+  .item:active{transform:scale(.985);}
+  .item .stripe{width:4px;align-self:stretch;border-radius:3px;flex:none;background:var(--green);}
+  .item .name{font-weight:600;font-size:16px;letter-spacing:.2px;}
+  .item .sub{font-size:13px;color:var(--text-2);}
+  .item .chev{margin-left:auto;color:var(--text-3);flex:none;font-size:20px;}
+  .badge{font-size:10px;font-weight:700;letter-spacing:1px;padding:4px 8px;border-radius:7px;white-space:nowrap;text-transform:uppercase;}
+  .c-green{color:var(--green);}.b-green{background:rgba(55,200,113,.14);color:var(--green);}.s-green{background:var(--green);}
+  .c-blue{color:var(--blue);}.b-blue{background:rgba(61,123,255,.16);color:var(--blue);}.s-blue{background:var(--blue);}
+  .c-yellow{color:var(--yellow);}.b-yellow{background:rgba(242,193,46,.16);color:var(--yellow);}.s-yellow{background:var(--yellow);}
+  .c-purple{color:var(--purple);}.b-purple{background:rgba(154,107,255,.16);color:var(--purple);}.s-purple{background:var(--purple);}
+  .c-red{color:var(--red);}.b-red{background:rgba(232,68,58,.16);color:var(--red);}.s-red{background:var(--red);}
+  .c-pink{color:var(--pink);}.b-pink{background:rgba(255,92,138,.16);color:var(--pink);}.s-pink{background:var(--pink);}
+  .banner{border-radius:13px;padding:13px 14px;font-size:13.5px;display:flex;gap:11px;align-items:flex-start;}
+  .banner svg{flex:none;margin-top:1px;}
+  .banner.warn{background:rgba(242,193,46,.1);border:1px solid rgba(242,193,46,.32);color:#f2d588;}
+  .banner.danger{background:rgba(232,68,58,.1);border:1px solid rgba(232,68,58,.34);color:#f3a39c;}
+  .banner.info{background:rgba(61,123,255,.1);border:1px solid rgba(61,123,255,.3);color:#b7caf7;}
+  .banner b{font-weight:700;}
+  .back{display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:var(--green);font-size:15px;font-weight:600;padding:0 0 14px;}
+  .detail-h{font-family:var(--display);font-size:30px;text-transform:uppercase;letter-spacing:.4px;line-height:1;margin:6px 0 4px;}
+  .pc{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:6px;}
+  .pc .box{border-radius:13px;padding:13px;font-size:13.5px;border:1px solid var(--line);background:var(--surface);}
+  .pc h4{margin:0 0 8px;font-size:11px;letter-spacing:1.2px;text-transform:uppercase;}
+  .pc .pros h4{color:var(--green);}.pc .cons h4{color:var(--yellow);}
+  .pc ul{margin:0;padding-left:16px;}.pc li{margin-bottom:5px;color:var(--text);}
+  .field{margin-bottom:15px;}
+  .field label{display:block;font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-3);font-weight:600;margin-bottom:8px;}
+  select,input[type=number],input[type=date],input[type=time]{width:100%;font-family:var(--body);font-size:16px;color:var(--bone);background:var(--raised);border:1px solid var(--line);border-radius:12px;padding:13px;appearance:none;}
+  input::-webkit-calendar-picker-indicator{filter:invert(.7);}
+  select{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23A39E93' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>");background-repeat:no-repeat;background-position:right 13px center;padding-right:40px;}
+  .chips{display:flex;flex-wrap:wrap;gap:9px;}
+  .chip{font-family:var(--display);font-size:16px;letter-spacing:.5px;padding:11px 15px;border-radius:11px;border:1px solid var(--line);background:var(--raised);color:var(--bone);}
+  .chip.on{background:var(--green);color:#08130c;border-color:var(--green);}
+  .readout{text-align:center;padding:8px 0 4px;}
+  .readout .units{font-family:var(--display);font-size:64px;line-height:.85;color:var(--green);letter-spacing:1px;}
+  .readout .units span{font-family:var(--body);font-size:18px;color:var(--text-2);font-weight:500;letter-spacing:0;}
+  .readout .vol{font-size:13px;color:var(--text-2);margin-top:8px;letter-spacing:.3px;}
+  .syringe-wrap{padding:10px 4px 4px;}
+  svg.syr{width:100%;height:auto;display:block;}
+  .syr .barrel{fill:rgba(255,255,255,.03);stroke:#5b5650;stroke-width:2;}
+  .syr .fill{fill:var(--green);opacity:.92;transition:width .45s cubic-bezier(.3,.8,.3,1);}
+  .syr .tick{stroke:#5b5650;stroke-width:1.5;}
+  .syr .tickmaj{stroke:#8a847a;stroke-width:2;}
+  .syr .lbl{fill:var(--text-3);font-family:var(--body);font-weight:600;font-size:11px;}
+  .syr .plunger{fill:#cfc9bd;}
+  .syr .needle{stroke:#6e695f;stroke-width:2.5;}
+  .syr .marker{stroke:var(--green);stroke-width:2;stroke-dasharray:3 3;}
+  @media (prefers-reduced-motion:reduce){.syr .fill{transition:none;}}
+  .recon-line{text-align:center;font-size:11.5px;color:var(--text-3);margin-top:8px;letter-spacing:.3px;}
+  .when{display:inline-block;font-size:12.5px;background:var(--raised);border:1px solid var(--line);border-radius:9px;padding:6px 11px;color:var(--text-2);letter-spacing:.3px;}
+  .step{display:flex;gap:13px;padding:14px 0;border-bottom:1px solid var(--line);}
+  .step:last-child{border-bottom:none;}
+  .step .tcol{flex:none;width:82px;}
+  .step .tcol .t{font-family:var(--display);font-size:14px;letter-spacing:.5px;color:var(--green);text-transform:uppercase;}
+  .step .act{font-size:14.5px;}
+  .dosechip{display:inline-block;font-size:12px;font-weight:600;border-radius:8px;padding:4px 9px;margin-top:7px;letter-spacing:.3px;}
+  .btn{width:100%;background:var(--green);color:#08130c;border:none;border-radius:13px;padding:15px;font-family:var(--display);font-size:18px;letter-spacing:.8px;text-transform:uppercase;}
+  .btn:active{filter:brightness(.92);}
+  .btn.ghost{background:transparent;color:var(--green);border:1px solid var(--line);}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+  .ledger-day{margin-top:18px;}
+  .ledger-day .d{font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-3);margin:0 4px 9px;}
+  .entry{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:12px 14px;margin-bottom:8px;}
+  .entry .ename{font-weight:600;font-size:15px;}
+  .entry .etime{font-size:12px;color:var(--text-3);}
+  .entry .edose{font-size:12.5px;font-weight:600;background:var(--raised);border:1px solid var(--line);border-radius:8px;padding:4px 9px;margin-left:auto;color:var(--bone);}
+  .entry .del{background:none;border:none;color:var(--text-3);padding:5px;}
+  .entry .del:active{color:var(--red);}
+  .empty{text-align:center;color:var(--text-3);font-size:14px;padding:34px 10px;}
+  .nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;background:rgba(18,17,16,.96);backdrop-filter:blur(14px);border-top:1px solid var(--line);display:flex;padding:9px 6px calc(9px + env(safe-area-inset-bottom));z-index:30;}
+  .nav button{flex:1;background:none;border:none;padding:5px 2px;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--text-3);font-size:10px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;}
+  .nav button.on{color:var(--green);}
+  .footnote{font-size:11.5px;color:var(--text-3);text-align:center;padding:16px 8px 0;line-height:1.6;}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div><div class="eyebrow" id="eyebrow">Study Protocol</div><h1 class="app-title" id="title">Home</h1></div>
+    <div class="pill">Subject</div>
+  </div>
+
+  <!-- HOME -->
+  <main class="screen" id="screen-home">
+    <div class="hero">
+      <svg class="mark" width="150" height="150" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1"><path d="M18 2l4 4M17 7L6 18l-4 1 1-4L14 4z"/></svg>
+      <div class="eb">Companion</div>
+      <h2>Protocol<br>Companion</h2>
+      <p>Your dosing, timing, and tracking for the study. Built for one job: take the right amount at the right time, and log it.</p>
+      <div class="stats">
+        <div class="stat"><div class="n" id="home-today">0</div><div class="l">Logged today</div></div>
+        <div class="stat"><div class="n" id="home-week">0</div><div class="l">This week</div></div>
+      </div>
+    </div>
+
+    <div class="sec">How to use this</div>
+    <div class="card pad">
+      <div class="how"><div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg></div><div><div class="t">Situations</div><div class="s">Pick what you're doing for a step-by-step protocol.</div></div></div>
+      <div class="how"><div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2l4 4M17 7l-11 11-4 1 1-4L14 4zM12 9l3 3"/></svg></div><div><div class="t">Dose</div><div class="s">See the exact units to draw on the syringe.</div></div></div>
+      <div class="how"><div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3"/></svg></div><div><div class="t">Info</div><div class="s">Effects, pros, cons, and warnings per compound.</div></div></div>
+      <div class="how"><div class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg></div><div><div class="t">Tracker</div><div class="s">Log every dose so the study record stays clean.</div></div></div>
+    </div>
+
+    <div class="sec">Before each dose</div>
+    <div class="banner info"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v.01M11 12h1v4h1"/></svg><div>Supervised study use. Follow only the protocol your coordinator assigned, and report any side effects.</div></div>
+    <div style="height:10px;"></div>
+    <div class="banner warn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg><div>Sterile technique every time: clean the site, new needle, rotate spots. Refrigerate everything after mixing.</div></div>
+
+    <div class="footnote">Educational tool for an approved study. Not medical advice. Doses reflect the assigned protocol, not a prescription.</div>
+  </main>
+
+  <!-- COMPOUNDS -->
+  <main class="screen" id="screen-compounds" hidden>
+    <div id="compounds-list"></div>
+    <div id="compound-detail" hidden></div>
+  </main>
+
+  <!-- DOSE -->
+  <main class="screen" id="screen-dose" hidden>
+    <div class="card pad">
+      <div class="field"><label>Compound</label><select id="dose-compound" onchange="onDoseCompound()"></select></div>
+      <div class="field" style="margin-bottom:4px;"><label>Dose</label><div class="chips" id="dose-chips"></div></div>
+    </div>
+    <div class="card pad" style="margin-top:13px;">
+      <div class="readout"><div class="units" id="ro-units">—</div><div class="vol" id="ro-vol"></div></div>
+      <div class="syringe-wrap"><div id="syr-host"></div></div>
+      <div class="recon-line" id="ro-recon"></div>
+    </div>
+    <div class="sec">Custom calculator</div>
+    <div class="card pad">
+      <div class="row2"><div class="field" style="margin-bottom:11px;"><label>Vial (mg)</label><input type="number" id="c-vial" value="10" inputmode="decimal"></div><div class="field" style="margin-bottom:11px;"><label>BAC water (mL)</label><input type="number" id="c-bac" value="2" inputmode="decimal"></div></div>
+      <div class="field" style="margin-bottom:12px;"><label>Desired dose (mg)</label><input type="number" id="c-dose" value="2" inputmode="decimal"></div>
+      <button class="btn ghost" onclick="calcCustom()">Calculate units</button>
+      <div id="c-result" style="text-align:center;font-size:14px;margin-top:13px;color:var(--green);font-weight:600;"></div>
+    </div>
+    <div class="footnote">U-100 insulin syringe assumed: 1 mL = 100 units, so 1 unit = 0.01 mL.</div>
+  </main>
+
+  <!-- SITUATIONS -->
+  <main class="screen" id="screen-situations" hidden>
+    <div id="situations-list"></div>
+    <div id="situation-detail" hidden></div>
+  </main>
+
+  <!-- TRACKER -->
+  <main class="screen" id="screen-tracker" hidden>
+    <div class="card pad">
+      <div class="sec" style="margin-top:0;">Log a dose</div>
+      <div class="field"><label>Compound</label><select id="t-compound" onchange="onTrackCompound()"></select></div>
+      <div class="field"><label>Dose</label><select id="t-dose"></select></div>
+      <div class="row2"><div class="field"><label>Date</label><input type="date" id="t-date"></div><div class="field"><label>Time</label><input type="time" id="t-time"></div></div>
+      <button class="btn" onclick="addLog()">Log dose</button>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin:22px 4px 2px;">
+      <div class="sec" style="margin:0;">Dose ledger</div>
+      <button class="back" style="padding:0;" onclick="clearLog()">Clear all</button>
+    </div>
+    <div id="ledger"></div>
+  </main>
+
+  <!-- NAV -->
+  <nav class="nav" id="nav">
+    <button data-tab="home" class="on" onclick="go('home')"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg>Home</button>
+    <button data-tab="situations" onclick="go('situations')"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>Situations</button>
+    <button data-tab="dose" onclick="go('dose')"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2l4 4M17 7l-11 11-4 1 1-4L14 4zM12 9l3 3"/></svg>Dose</button>
+    <button data-tab="compounds" onclick="go('compounds')"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3"/></svg>Info</button>
+    <button data-tab="tracker" onclick="go('tracker')"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Tracker</button>
+  </nav>
+</div>
+
+<script>
+const C = {
+  nad:{name:"NAD+",tag:"Energy",col:"green",what:"A coenzyme central to cellular energy that declines with age. Replenishes a cellular pool rather than acting acutely.",pros:["Cellular energy","Metabolic support","Recovery","Cognitive clarity"],cons:["Strong flush","Stings on injection"],warn:"Inject slowly to limit the flush. Take in the morning, not near bedtime.",evidence:"Oral precursors trial-supported; injectable extrapolated.",use:"Subcutaneous, 2–3x/week, morning. Not timed to exercise.",recon:"500 mg vial · 5 mL BAC · 100 mg/mL · 1 unit = 1 mg",doses:[{l:"25 mg",u:25},{l:"50 mg",u:50},{l:"100 mg",u:100}]},
+  motsc:{name:"MOTS-c",tag:"Endurance",col:"green",what:"A mitochondrial-derived peptide and exercise mimetic. Activates AMPK to push cells into a fuel-burning state.",pros:["Endurance","Fat oxidation","Insulin sensitivity","Mitochondrial support"],cons:["Mild fatigue or nausea","Light-headedness if fasted"],warn:"Not a stimulant. Don't double-dose; used a few times per week, not multiple times per day.",evidence:"Strong animal data; no completed human trials of the native peptide.",use:"Subcutaneous, 2–3x/week, about 1 hour before cardio.",recon:"10 mg vial · 2 mL BAC · 5 mg/mL · 1 unit = 50 mcg",doses:[{l:"1 mg",u:20},{l:"2 mg",u:40}]},
+  selank:{name:"Selank",tag:"Anxiety",col:"blue",what:"A tuftsin analogue that reduces anxiety without sedation or dependence. Builds over 1–2 weeks; a single dose also gives hours of calm.",pros:["Reduces anxiety","Calm without sedation","No dependence","Mild focus support"],cons:["Mildly stimulating for some","Can disturb sleep if late"],warn:"Not a substitute for proper care of clinical anxiety.",evidence:"Russian clinical use, mostly intranasal; subcutaneous extrapolated.",use:"Subcutaneous, morning, or 30–60 min before a stressor.",recon:"10 mg vial · 2 mL BAC · 5 mg/mL · 1 unit = 50 mcg",doses:[{l:"250 mcg",u:5},{l:"300 mcg",u:6},{l:"500 mcg",u:10}]},
+  semax:{name:"Semax",tag:"Focus",col:"blue",what:"An ACTH-fragment analogue used as a nootropic and neuroprotective agent. Mildly activating.",pros:["Focus and clarity","Drive and motivation","Mental stamina","Neuroprotection"],cons:["Activating","Late dosing disturbs sleep"],warn:"Keep dosing to morning and early afternoon to protect sleep.",evidence:"Russian clinical use, mostly intranasal; injectable extrapolated.",use:"Subcutaneous, morning, optional early-afternoon second dose.",recon:"10 mg vial · 2 mL BAC · 5 mg/mL · 1 unit = 50 mcg",doses:[{l:"300 mcg",u:6},{l:"500 mcg",u:10},{l:"600 mcg",u:12}]},
+  reta:{name:"Retatrutide",tag:"Weight loss",col:"red",what:"An investigational triple agonist (GLP-1 / GIP / glucagon) for obesity. A pharmaceutical drug, not a research peptide.",pros:["Large weight loss","Appetite reduction","Visceral and liver fat loss","Broad metabolic improvement"],cons:["Nausea and GI effects","Significant systemic drug"],warn:"Investigational and trial-only. Requires medical supervision and bloodwork. Titrate slowly and never front-load.",evidence:"Strong Phase 2/3 trial data; not approved as of mid-2026.",use:"Subcutaneous once weekly, same day each week.",recon:"10 mg vial · 2 mL BAC · 5 mg/mL · 1 unit = 50 mcg",doses:[{l:"0.5 mg",u:10},{l:"1 mg",u:20},{l:"2 mg",u:40}]},
+  ghk:{name:"GHK-Cu",tag:"Skin / healing",col:"purple",what:"A copper-binding tripeptide for tissue repair, skin quality, and collagen. Body levels fall with age.",pros:["Skin quality","Collagen production","Wound healing","Regeneration"],cons:["Delivers copper","Local irritation"],warn:"Cycle it rather than running continuously, because of the copper load.",evidence:"Long research history, mostly topical; injectable extrapolated.",use:"Subcutaneous, before bed, consistent daily time.",recon:"50 mg vial · 4 mL BAC · 12.5 mg/mL · 1 unit = 125 mcg",doses:[{l:"1 mg",u:8},{l:"1.5 mg",u:12},{l:"2 mg",u:16}]},
+  mt2:{name:"Melanotan II",tag:"Tanning · fast",col:"yellow",what:"A non-selective melanocortin agonist used for tanning. Faster and deeper than MT-I but with broader side effects.",pros:["Fast, deep tan with less UV","Some libido effect","Some appetite suppression"],cons:["Nausea and flushing","Uneven mole and spot darkening","Spontaneous arousal"],warn:"Darkens moles and can mask skin cancer — get baseline mole mapping. A prolonged erection over 4 hours is a medical emergency. Still needs UVB to tan.",evidence:"Not approved. Tanning effect confirmed in small studies.",use:"Subcutaneous, evening; brief midday UV timed separately.",recon:"10 mg vial · 2 mL BAC · 5 mg/mL · 1 unit = 50 mcg",doses:[{l:"250 mcg",u:5},{l:"500 mcg",u:10}]},
+  mt1:{name:"Melanotan I",tag:"Tanning · clean",col:"yellow",what:"An MC1R-selective melanocortin agonist (afamelanotide). Slower, more even tan with a much cleaner side-effect profile.",pros:["Even, natural tan","No libido or appetite effects","Minimal nausea or flushing","FDA-approved as Scenesse (implant)"],cons:["Slower to build (2–3 weeks)","Short half-life needs daily dosing"],warn:"Still darkens moles — monitor and get mapping. Needs UVB to tan.",evidence:"Most clinically validated of the two.",use:"Subcutaneous, daily; brief midday UV.",recon:"10 mg vial · 2 mL BAC · 5 mg/mL · 1 unit = 50 mcg",doses:[{l:"250 mcg",u:5},{l:"500 mcg",u:10},{l:"1000 mcg",u:20}]},
+  bpc:{name:"BPC-157",tag:"Recovery",col:"purple",what:"A protective pentadecapeptide for healing soft tissue, tendons, ligaments, muscle, and the gut.",pros:["Injury and wound healing","Tendon and ligament repair","Anti-inflammatory","Gut protection"],cons:["Human trial data still developing"],warn:"Inject near the injury site for local effect, or any site for systemic benefit.",evidence:"Extensive animal data; human evidence developing.",use:"Subcutaneous, daily, often near the injury site.",recon:"10 mg vial · 2 mL BAC · 5 mg/mL · 1 unit = 50 mcg",doses:[{l:"250 mcg",u:5},{l:"500 mcg",u:10}]},
+  pt141:{name:"PT-141",tag:"Libido",col:"pink",what:"An MC4R agonist for sexual arousal (bremelanotide), the purpose-built alternative to MT-II's libido effect. No tanning.",pros:["Increased arousal and libido","Centrally driven","No tanning effect","FDA-approved (Vyleesi)"],cons:["Nausea and flushing","Transient blood-pressure rise"],warn:"Acute use before intimacy, not daily. Start low to manage nausea.",evidence:"FDA-approved for low sexual desire; used off-label by men.",use:"Subcutaneous, about 1–3 hours before intimacy.",recon:"10 mg vial · 2 mL BAC · 5 mg/mL · 1 unit = 50 mcg",doses:[{l:"1 mg",u:20},{l:"1.5 mg",u:30},{l:"2 mg",u:40}]},
+};
+const C_ORDER = ["nad","motsc","selank","semax","reta","ghk","mt2","mt1","bpc","pt141"];
+
+const SIT = {
+  run_morn_end:{title:"Morning run — endurance",col:"green",when:"Fastest time. Glycogen and pace first.",steps:[{t:"Night before",a:"High-carb, low-fat dinner to stock glycogen."},{t:"T-60 min",a:"Inject MOTS-c. Start hydration.",c:"motsc",d:"2 mg",u:40},{t:"T-45 min",a:"Black coffee / caffeine. No food yet."},{t:"T-20 min",a:"Small fast carb (banana, dates) to protect the second half."},{t:"T-10 min",a:"Dynamic warm-up — muscles are cold in the morning."},{t:"Run",a:"Start steady; even or negative split."}],note:"The small pre-run carb barely blunts MOTS-c and protects your pace.",warn:""},
+  run_morn_fat:{title:"Morning run — fat loss",col:"green",when:"Max fat burn. Pace is secondary.",steps:[{t:"Night before",a:"Moderate dinner, not a heavy carb load."},{t:"T-60 min",a:"Inject MOTS-c. Water only, fasted.",c:"motsc",d:"2 mg",u:40},{t:"T-45 min",a:"Black coffee optional. Still fasted."},{t:"Run",a:"Moderate, conversational pace where fat oxidation peaks."},{t:"After",a:"Break the fast: protein + moderate carb within 30–60 min."}],note:"Fully fasted gives the strongest fat-burn and adaptation, but a pushed pace will fade.",warn:""},
+  run_night_end:{title:"Night run — endurance",col:"green",when:"Best overall 12 km time (circadian peak).",steps:[{t:"T-3 hours",a:"Moderate-carb, low-fat, low-fibre meal. Insulin settles, digestion clears."},{t:"T-60 min",a:"Inject MOTS-c.",c:"motsc",d:"2 mg",u:40},{t:"T-45 min",a:"Caffeine only if you'll sleep well after."},{t:"Run",a:"Full pace available — glycogen stocked, muscles warm."},{t:"After",a:"Small meal with carbs to avoid a late glucose dip."}],note:"Meal timing and composition is your biggest lever at night.",warn:""},
+  run_night_fat:{title:"Night run — fat loss",col:"green",when:"Fat burn despite the fed state.",steps:[{t:"T-3–4 hrs",a:"Lower-carb meal: protein + non-starchy veg to keep insulin down."},{t:"T-60 min",a:"Inject MOTS-c.",c:"motsc",d:"2 mg",u:40},{t:"Run",a:"Moderate pace; by km 6–8 fat becomes the primary fuel."},{t:"After",a:"Small protein snack; go easy on carbs to extend fat-burn."}],note:"Lower-carb meal earlier is what makes a night run work for fat loss.",warn:""},
+  anxiety:{title:"Before a stressful event",col:"blue",when:"Calm for a presentation, interview, exam.",steps:[{t:"1–2 wks",a:"Optional Selank cycle to lower baseline anxiety.",c:"selank",d:"300 mcg",u:6},{t:"30–60 min",a:"Inject Selank. Calm without sedation, so you can still perform.",c:"selank",d:"500 mcg",u:10}],note:"A steady cycle plus a pre-event dose is the most complete approach.",warn:""},
+  focus:{title:"Deep work / focus",col:"blue",when:"Locking in for a work block.",steps:[{t:"Morning",a:"Inject Semax before the deep-work block.",c:"semax",d:"500 mcg",u:10},{t:"Early PM",a:"Optional second dose if focus needs to carry through the day.",c:"semax",d:"300 mcg",u:6}],note:"Avoid late dosing so it doesn't affect sleep.",warn:""},
+  night_out:{title:"Night out (social)",col:"blue",when:"Social ease, ~8 pm to 3 am.",steps:[{t:"1–2 wks",a:"Run a Selank cycle so the night starts from a calmer baseline.",c:"selank",d:"300 mcg",u:6},{t:"~7:00 pm",a:"Inject Selank for calm.",c:"selank",d:"500 mcg",u:10},{t:"~7:05 pm",a:"Inject Semax for conversational sharpness.",c:"semax",d:"300 mcg",u:6},{t:"~10–11 pm",a:"Optional Selank top-up to extend the calm.",c:"selank",d:"300 mcg",u:6},{t:"Later",a:"No more Semax — protect sleep once home."}],note:"Selank handles the anxiety, Semax the drive. Front-loaded for the early hours.",warn:"Interaction with alcohol is not well studied. Keep alcohol modest and don't use the calm to mask heavy drinking."},
+  injury:{title:"Injury recovery",col:"purple",when:"Soft-tissue, tendon, or ligament repair.",steps:[{t:"Daily",a:"Inject BPC-157 as close to the injury site as practical.",c:"bpc",d:"500 mcg",u:10}],note:"Typical cycle is 4–8 weeks, then a 2–4 week break.",warn:""},
+  metabolic:{title:"Daily metabolic / longevity",col:"green",when:"Baseline energy and metabolic support.",steps:[{t:"Morning",a:"Inject NAD+ (build up from 25 mg over the first weeks).",c:"nad",d:"100 mg",u:100},{t:"Other days",a:"Optional MOTS-c on its 2–3x/week schedule.",c:"motsc",d:"2 mg",u:40}],note:"Alternate NAD+ and MOTS-c days so the NAD+ flush never lands right before a run.",warn:""},
+  tanning:{title:"Tanning session",col:"yellow",when:"Build or hold a tan.",steps:[{t:"Evening",a:"MT-II during loading (fast tan).",c:"mt2",d:"500 mcg",u:10},{t:"Or daily",a:"MT-I for a cleaner, more even tan.",c:"mt1",d:"500 mcg",u:10},{t:"Midday UV",a:"Short exposure in the 11 am–1 pm window, UV index 3+. Keep it brief to avoid burning."}],note:"The peptide primes the skin; UVB builds the tan. Below UV 3 (winter), use a bed or just maintain.",warn:"Both darken moles and can hide skin-cancer signs. Get baseline mole mapping and review changes."},
+  weightloss:{title:"Weekly weight-loss",col:"red",when:"Once-weekly, supervised.",steps:[{t:"Weeks 1–4",a:"Inject Retatrutide, same day each week (start dose).",c:"reta",d:"0.5 mg",u:10},{t:"Weeks 5–8",a:"Step up after 4 weeks if tolerated.",c:"reta",d:"1 mg",u:20},{t:"Weeks 9+",a:"Maintenance, only if tolerated.",c:"reta",d:"2 mg",u:40}],note:"Increase every 4 weeks only. Slow titration prevents nausea.",warn:"Investigational and trial-only. Requires medical supervision and ongoing bloodwork."},
+  libido:{title:"Libido / before intimacy",col:"pink",when:"Acute, before activity.",steps:[{t:"1–3 hrs",a:"PT-141 is the cleaner choice (no tanning).",c:"pt141",d:"1 mg",u:20},{t:"Or 1–3 hrs",a:"Alternatively a low MT-II dose (also tans).",c:"mt2",d:"500 mcg",u:10}],note:"Start low for nausea. The effect builds over a couple of hours.",warn:"A prolonged erection over 4 hours is a medical emergency — seek care immediately."},
+};
+const SIT_ORDER = ["run_morn_end","run_morn_fat","run_night_end","run_night_fat","anxiety","focus","night_out","injury","metabolic","tanning","weightloss","libido"];
+
+let LOG = [];
+const KEY = "protocol_companion_log_v2";
+async function loadLog(){ try{ if(window.storage){ const r=await window.storage.get(KEY); if(r&&r.value) LOG=JSON.parse(r.value);} }catch(e){} }
+async function saveLog(){ try{ if(window.storage){ await window.storage.set(KEY, JSON.stringify(LOG)); } }catch(e){} }
+
+const TITLES={home:["Study Protocol","Home"],compounds:["Reference","Compounds"],dose:["Tool","Dose"],situations:["Plan","Situations"],tracker:["Log","Tracker"]};
+function go(tab){
+  ["home","compounds","dose","situations","tracker"].forEach(t=>document.getElementById("screen-"+t).hidden=(t!==tab));
+  document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("on",b.dataset.tab===tab));
+  document.getElementById("eyebrow").textContent=TITLES[tab][0];
+  document.getElementById("title").textContent=TITLES[tab][1];
+  if(tab==="compounds"){document.getElementById("compounds-list").hidden=false;document.getElementById("compound-detail").hidden=true;}
+  if(tab==="situations"){document.getElementById("situations-list").hidden=false;document.getElementById("situation-detail").hidden=true;}
+  if(tab==="tracker") renderLedger();
+  const s=document.querySelector(".screen:not([hidden])"); if(s) s.scrollTop=0;
+}
+
+function syringeSVG(units){
+  units=Math.max(0,Math.min(100,units));
+  const x0=58,x1=322,span=x1-x0,py=30,ph=30,fillW=span*(units/100),markX=x0+fillW;
+  let ticks="";
+  for(let u=0;u<=100;u+=10){
+    const x=x0+span*(u/100),maj=(u%20===0);
+    ticks+=`<line class="${maj?'tickmaj':'tick'}" x1="${x}" y1="${py}" x2="${x}" y2="${maj?py-9:py-6}"/>`;
+    if(maj) ticks+=`<text class="lbl" x="${x}" y="${py-12}" text-anchor="middle">${u}</text>`;
+  }
+  return `<svg class="syr" viewBox="0 0 360 84" role="img" aria-label="Syringe drawn to ${units} units">${ticks}<rect class="barrel" x="${x0}" y="${py}" width="${span}" height="${ph}" rx="5"/><rect class="fill" x="${x0}" y="${py+2}" width="${fillW}" height="${ph-4}" rx="3"/><line class="needle" x1="${x0}" y1="${py+ph/2}" x2="20" y2="${py+ph/2}"/><line class="marker" x1="${markX}" y1="${py-4}" x2="${markX}" y2="${py+ph+8}"/><rect class="plunger" x="${markX-3}" y="${py-2}" width="6" height="${ph+4}" rx="2"/><line class="needle" x1="${markX}" y1="${py+ph/2}" x2="346" y2="${py+ph/2}"/><rect class="plunger" x="344" y="${py-6}" width="6" height="${ph+12}" rx="2"/></svg>`;
+}
+
+let doseSel={id:null,idx:0};
+function initDose(){
+  document.getElementById("dose-compound").innerHTML=C_ORDER.map(id=>`<option value="${id}">${C[id].name}</option>`).join("");
+  doseSel.id=C_ORDER[0]; onDoseCompound();
+}
+function onDoseCompound(){
+  doseSel.id=document.getElementById("dose-compound").value; doseSel.idx=0;
+  const c=C[doseSel.id];
+  document.getElementById("dose-chips").innerHTML=c.doses.map((d,i)=>`<button class="chip ${i===0?'on':''}" onclick="pickDose(${i})">${d.l}</button>`).join("");
+  renderDose();
+}
+function pickDose(i){doseSel.idx=i;document.querySelectorAll("#dose-chips .chip").forEach((b,j)=>b.classList.toggle("on",j===i));renderDose();}
+function renderDose(){
+  const c=C[doseSel.id],d=c.doses[doseSel.idx];
+  document.getElementById("ro-units").innerHTML=`${d.u}<span> units</span>`;
+  document.getElementById("ro-vol").textContent=`${d.l}  ·  ${(d.u/100).toFixed(2)} mL`;
+  document.getElementById("ro-recon").textContent=c.recon;
+  document.getElementById("syr-host").innerHTML=syringeSVG(d.u);
+}
+function calcCustom(){
+  const vial=parseFloat(document.getElementById("c-vial").value),bac=parseFloat(document.getElementById("c-bac").value),dose=parseFloat(document.getElementById("c-dose").value);
+  const out=document.getElementById("c-result");
+  if(!vial||!bac||!dose||vial<=0||bac<=0||dose<=0){out.textContent="Enter vial, water, and dose.";return;}
+  const conc=vial/bac,mL=dose/conc,units=mL*100;
+  out.innerHTML=units>100?`${units.toFixed(1)} units — over one syringe. Use less water or split the dose.`:`Draw to <b>${units.toFixed(1)} units</b> &nbsp;·&nbsp; ${conc.toFixed(1)} mg/mL &nbsp;·&nbsp; ${mL.toFixed(3)} mL`;
+  document.getElementById("syr-host").innerHTML=syringeSVG(units);
+  document.getElementById("ro-units").innerHTML=`${units.toFixed(0)}<span> units</span>`;
+  document.getElementById("ro-vol").textContent=`custom · ${dose} mg @ ${conc.toFixed(1)} mg/mL`;
+  document.getElementById("ro-recon").textContent="Custom calculation";
+}
+
+function initCompounds(){
+  const rows=C_ORDER.map(id=>{ const c=C[id]; return `<button class="item" onclick="openCompound('${id}')"><span class="stripe s-${c.col}"></span><span class="badge b-${c.col}">${c.tag}</span><span><div class="name">${c.name}</div><div class="sub">${c.use.split(",")[0]}</div></span><span class="chev">›</span></button>`; }).join("");
+  document.getElementById("compounds-list").innerHTML=`<div class="list">${rows}</div><div class="footnote">Tap any compound for effects, pros, cons, and warnings.</div>`;
+}
+function openCompound(id){
+  const c=C[id];
+  document.getElementById("compounds-list").hidden=true;
+  const el=document.getElementById("compound-detail"); el.hidden=false;
+  el.innerHTML=`<button class="back" onclick="go('compounds')">‹ All compounds</button><span class="badge b-${c.col}">${c.tag}</span><div class="detail-h">${c.name}</div><p class="muted" style="font-size:14.5px;margin:8px 0 16px;">${c.what}</p><div class="pc"><div class="box pros"><h4>Pros</h4><ul>${c.pros.map(p=>`<li>${p}</li>`).join("")}</ul></div><div class="box cons"><h4>Cons</h4><ul>${c.cons.map(p=>`<li>${p}</li>`).join("")}</ul></div></div><div class="banner warn" style="margin-top:14px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg><div><b>Warning. </b>${c.warn}</div></div><div class="card pad" style="margin-top:14px;"><div class="kv"><span class="k">How it's used</span><span class="v">${c.use}</span></div><div class="kv"><span class="k">Evidence</span><span class="v">${c.evidence}</span></div><div class="kv"><span class="k">Reconstitution</span><span class="v">${c.recon}</span></div></div><div class="sec">Doses → units</div><div class="card pad">${c.doses.map(d=>`<div class="kv"><span class="k">${d.l}</span><span class="v c-${c.col}" style="font-family:var(--display);font-size:16px;">${d.u} units</span></div>`).join("")}<button class="btn ghost" style="margin-top:13px;" onclick="go('dose');document.getElementById('dose-compound').value='${id}';onDoseCompound();">Open in dose tool</button></div><div style="height:10px;"></div>`;
+  document.getElementById("screen-compounds").scrollTop=0;
+}
+
+function initSituations(){
+  const rows=SIT_ORDER.map(id=>{ const s=SIT[id]; const label=s.title.split(" — ")[0].split(" / ")[0].split(" (")[0]; return `<button class="item" onclick="openSit('${id}')"><span class="stripe s-${s.col}"></span><span class="badge b-${s.col}">${label}</span><span><div class="name">${s.title}</div><div class="sub">${s.when}</div></span><span class="chev">›</span></button>`; }).join("");
+  document.getElementById("situations-list").innerHTML=`<div class="list">${rows}</div>`;
+}
+function openSit(id){
+  const s=SIT[id];
+  document.getElementById("situations-list").hidden=true;
+  const el=document.getElementById("situation-detail"); el.hidden=false;
+  el.innerHTML=`<button class="back" onclick="go('situations')">‹ All situations</button><div class="detail-h">${s.title}</div><div style="margin:10px 0 14px;"><span class="when">${s.when}</span></div><div class="card pad">${s.steps.map(st=>`<div class="step"><div class="tcol"><div class="t">${st.t}</div></div><div class="acol"><div class="act">${st.a}</div>${st.c?`<div><span class="dosechip b-${C[st.c].col}">${C[st.c].name} · ${st.d} · ${st.u} units</span></div>`:``}</div></div>`).join("")}</div>${s.note?`<div class="banner info" style="margin-top:14px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v.01M11 12h1v4h1"/></svg><div>${s.note}</div></div>`:``}${s.warn?`<div class="banner danger" style="margin-top:10px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg><div><b>Caution. </b>${s.warn}</div></div>`:``}<div style="height:10px;"></div>`;
+  document.getElementById("screen-situations").scrollTop=0;
+}
+
+function initTracker(){
+  document.getElementById("t-compound").innerHTML=C_ORDER.map(id=>`<option value="${id}">${C[id].name}</option>`).join("");
+  onTrackCompound();
+  const now=new Date();
+  document.getElementById("t-date").value=now.toISOString().slice(0,10);
+  document.getElementById("t-time").value=now.toTimeString().slice(0,5);
+}
+function onTrackCompound(){
+  const id=document.getElementById("t-compound").value;
+  document.getElementById("t-dose").innerHTML=C[id].doses.map(d=>`<option value="${d.l}|${d.u}">${d.l} (${d.u} units)</option>`).join("");
+}
+async function addLog(){
+  const id=document.getElementById("t-compound").value;
+  const [dl,du]=document.getElementById("t-dose").value.split("|");
+  const date=document.getElementById("t-date").value,time=document.getElementById("t-time").value;
+  if(!date||!time)return;
+  LOG.push({id:Date.now()+""+Math.floor(Math.random()*99),comp:id,name:C[id].name,col:C[id].col,dose:dl,units:du,date,time});
+  await saveLog(); renderLedger(); updateHome();
+}
+async function delLog(eid){LOG=LOG.filter(e=>e.id!==eid);await saveLog();renderLedger();updateHome();}
+async function clearLog(){if(LOG.length&&confirm("Clear the entire dose ledger?")){LOG=[];await saveLog();renderLedger();updateHome();}}
+function fmtDay(d){
+  const t=new Date().toISOString().slice(0,10),y=new Date(Date.now()-864e5).toISOString().slice(0,10);
+  if(d===t)return "Today"; if(d===y)return "Yesterday";
+  return new Date(d+"T00:00").toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"});
+}
+function renderLedger(){
+  const host=document.getElementById("ledger");
+  if(!LOG.length){host.innerHTML=`<div class="empty">No doses logged yet.<br>Log your first dose above.</div>`;return;}
+  const sorted=[...LOG].sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
+  const byDay={}; sorted.forEach(e=>{(byDay[e.date]=byDay[e.date]||[]).push(e);});
+  host.innerHTML=Object.keys(byDay).sort((a,b)=>b.localeCompare(a)).map(day=>`<div class="ledger-day"><div class="d">${fmtDay(day)}</div>${byDay[day].map(e=>`<div class="entry"><span class="stripe s-${e.col||'green'}" style="width:4px;height:34px;border-radius:3px;"></span><div><div class="ename">${e.name}</div><div class="etime">${e.time}</div></div><div class="edose">${e.dose} · ${e.units}u</div><button class="del" onclick="delLog('${e.id}')" aria-label="Delete"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button></div>`).join("")}</div>`).join("");
+}
+function updateHome(){
+  const t=new Date().toISOString().slice(0,10),w=new Date(Date.now()-6*864e5).toISOString().slice(0,10);
+  document.getElementById("home-today").textContent=LOG.filter(e=>e.date===t).length;
+  document.getElementById("home-week").textContent=LOG.filter(e=>e.date>=w).length;
+}
+
+(async function(){
+  initCompounds(); initSituations(); initDose(); initTracker();
+  await loadLog(); renderLedger(); updateHome();
+})();
+</script>
+</body>
+</html>
